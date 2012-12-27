@@ -1,7 +1,8 @@
 <?php
 
-namespace CMSx;
+namespace CMSx\DB;
 
+use CMSx\DB;
 use CMSx\DB\Query\Create;
 use CMSx\DB\Exception;
 

@@ -4,7 +4,7 @@ require_once __DIR__ . '/../init.php';
 
 use CMSx\DB;
 
-class DBTest extends PHPUnit_Framework_TestCase
+class BuildTest extends PHPUnit_Framework_TestCase
 {
   function testSelectPrefix()
   {

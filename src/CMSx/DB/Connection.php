@@ -1,6 +1,6 @@
 <?php
 
-namespace CMSx;
+namespace CMSx\DB;
 
 class Connection
 {
