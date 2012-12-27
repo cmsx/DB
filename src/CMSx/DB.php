@@ -67,11 +67,11 @@ class DB
   }
 
   /**
-   * @static
+   * Выполнение запроса в БД.
    *
-   * @param SQLQuery|string $sql
+   * @param Query|string $sql
    *
-   * @return PDOStatement|bool
+   * @return \PDOStatement|bool
    */
   public static function Execute($sql, $values = null)
   {
