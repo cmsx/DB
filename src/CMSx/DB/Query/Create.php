@@ -57,7 +57,7 @@ class Create extends Query
   /**
    * Получение компонентов запроса
    *
-   * * type - тип таблицы SQL::TYPE_*
+   * * type - тип таблицы DB::TYPE_*
    *
    * * columns - столбцы для создания
    *
