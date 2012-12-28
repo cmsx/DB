@@ -21,6 +21,12 @@ class DBTest extends PHPUnit_Framework_TestCase
     $this->assertEquals('PDOStatement', get_class($stmt), 'Получен объект PDOStatement');
     $arr = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    try {
+      DB::Execute('DESCRIBE never_existing_table');
+      $this->fail('Ошибки выбрасывают CMSx\DB\Exception');
+    } catch (\CMSx\DB\Exception $e) {
+    }
+
     $ok = false;
     foreach ($arr as $r) { //Ищем свежесозданную таблицу
       if ($r['Tables_in_cmsx_test'] == $this->table) {

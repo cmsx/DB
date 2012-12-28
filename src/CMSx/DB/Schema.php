@@ -47,8 +47,44 @@ abstract class Schema
     return $this->query->execute();
   }
 
+  /** Обновление структуры таблицы */
+  public function updateTable()
+  {
+    $tbl = DB::GetPrefix() . $this->table;
+
+    $cols     = $this->query->getDefinition('columns');
+    $tbl_info = DB::Execute("DESCRIBE $tbl")->fetchAll(\PDO::FETCH_ASSOC);
+    $tbl_arr  = array();
+    foreach ($tbl_info as $r) {
+      $tbl_arr[$r['Field']] = null;
+    }
+
+    $drop   = array_diff_key($tbl_arr, $cols);
+    $create = array_diff_key($cols, $tbl_arr);
+
+    foreach ($drop as $col => $na) {
+      DB::Alter($this->table)
+        ->dropColumn($col)
+        ->execute();
+    }
+
+    foreach ($create as $col => $def) {
+      DB::Alter($this->table)
+        ->addColumn($col, $def)
+        ->execute();
+    }
+
+    $prev = null;
+    foreach ($cols as $col => $def) {
+      DB::Alter($this->table)
+        ->modifyColumn($col, $def, $prev)
+        ->execute();
+      $prev = $col;
+    }
+  }
+
   /** Забивание таблицы стартовым контентом */
-  public function fillContent()
+  public function fillTable()
   {
     return true;
   }

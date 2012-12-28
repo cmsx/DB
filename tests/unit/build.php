@@ -34,7 +34,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testSelectByWhereArray()
   {
-    $sql  = DB::Select('pages')->where(array('some'=> 'thing'));
+    $sql  = DB::Select('pages')->where(array('some' => 'thing'));
     $vals = $sql->getBindedValues();
     $exp  = 'SELECT * FROM `pages` WHERE `some`=:where_some';
     $this->assertEquals($exp, $sql->make(), 'Выборка по массиву условий');
@@ -45,7 +45,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($exp, $sql->make(), 'Выборка по строковым условиям');
     $this->assertFalse($sql->getBindedValues(), 'Ничего не биндилось');
 
-    $sql = DB::Select('pages')->where(array('id'=> 12, 'is_active'=> 1));
+    $sql = DB::Select('pages')->where(array('id' => 12, 'is_active' => 1));
     $exp = 'SELECT * FROM `pages` WHERE `id`=12 AND `is_active`=1';
     $this->assertEquals($exp, $sql->make(true), 'Значения подставляются в запрос');
     $this->assertEquals($exp, (string)$sql, 'Преобразование объекта в строку');
@@ -109,7 +109,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $exp = 'SELECT * FROM `pages` WHERE id > :min OR status = :status';
     $this->assertEquals($exp, $sql->make(), 'Запрос с подстановкой');
 
-    $exp = array(':min'=> 12, ':status'=> 'new');
+    $exp = array(':min' => 12, ':status' => 'new');
     $this->assertEquals($exp, $sql->getBindedValues(), 'Пробиндилось корректно');
 
     $exp = 'SELECT * FROM `pages` WHERE id > 12 OR status = "new"';
@@ -129,7 +129,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $sql  = DB::Select('pages')
       ->columns('id', 'SUM(price) as `total`')
       ->groupby('parent_id')
-      ->having(array('total'=> 0));
+      ->having(array('total' => 0));
     $exp1 = 'SELECT `id`, SUM(price) as `total` FROM `pages` GROUP BY `parent_id` HAVING `total`=:having_total';
     $exp2 = 'SELECT `id`, SUM(price) as `total` FROM `pages` GROUP BY `parent_id` HAVING `total`=0';
     $this->assertEquals($exp1, $sql->make(), 'Запрос с условием Having');
@@ -198,7 +198,8 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testInsert()
   {
-    $exp1    = 'INSERT INTO `pages` (`countme`, `foo`, `another`) VALUES (:insert_countme, :insert_foo, :insert_another)';
+    $exp1    =
+      'INSERT INTO `pages` (`countme`, `foo`, `another`) VALUES (:insert_countme, :insert_foo, :insert_another)';
     $exp2    = 'INSERT INTO `pages` (`countme`, `foo`, `another`) VALUES (12, "bar", NULL)';
     $exp_arr = array(
       ':insert_countme' => 12,
@@ -234,20 +235,22 @@ class BuildTest extends PHPUnit_Framework_TestCase
       ->addChar('title')
       ->addForeignId()
       ->addEnum('type', array('abc', 'cde'))
+      ->addPrice()
       ->addText()
       ->addIndex('title', 'parent_id')
       ->addUniqueIndex('title')
       ->addFulltextIndex('title', 'text');
-    $exp = 'CREATE TABLE `pages` ('."\n"
-      . '  `id` INT UNSIGNED AUTO_INCREMENT,'."\n"
-      . '  `title` VARCHAR(250) DEFAULT NULL,'."\n"
-      . '  `parent_id` INT UNSIGNED DEFAULT NULL,'."\n"
-      . '  `type` ENUM ("abc", "cde") NOT NULL,'."\n"
-      . '  `text` TEXT,'."\n"
-      . '  INDEX `i_title_parent_id` (`title`, `parent_id`),'."\n"
-      . '  UNIQUE INDEX `u_title` (`title`),'."\n"
-      . '  FULLTEXT `f_title_text` (`title`, `text`),'."\n"
-      . '  PRIMARY KEY (`id`)'."\n"
+    $exp = 'CREATE TABLE `pages` (' . "\n"
+      . '  `id` INT UNSIGNED AUTO_INCREMENT,' . "\n"
+      . '  `title` VARCHAR(250) DEFAULT NULL,' . "\n"
+      . '  `parent_id` INT UNSIGNED DEFAULT NULL,' . "\n"
+      . '  `type` ENUM ("abc", "cde") NOT NULL,' . "\n"
+      . '  `price` FLOAT(10,2) UNSIGNED,' . "\n"
+      . '  `text` TEXT,' . "\n"
+      . '  INDEX `i_title_parent_id` (`title`, `parent_id`),' . "\n"
+      . '  UNIQUE INDEX `u_title` (`title`),' . "\n"
+      . '  FULLTEXT `f_title_text` (`title`, `text`),' . "\n"
+      . '  PRIMARY KEY (`id`)' . "\n"
       . ') ENGINE=MyISAM';
     $this->assertEquals($exp, $sql->make(), 'Создание таблицы с индексами');
   }

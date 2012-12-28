@@ -197,10 +197,10 @@ class Create extends Query
     return $this->add(($col ? $col : 'parent_id'), 'INT UNSIGNED DEFAULT NULL');
   }
 
-  /** price - FLOAT(10,2) */
-  public function addPrice($col = null)
+  /** price - FLOAT(10,2) UNSIGNED */
+  public function addPrice($col = null, $unsigned = true)
   {
-    return $this->add(($col ? $col : 'price'), 'FLOAT(10,2)');
+    return $this->add(($col ? $col : 'price'), 'FLOAT(10,2)' . ($unsigned ? ' UNSIGNED' : ''));
   }
 
   /** text - $long ? LONGTEXT : TEXT */

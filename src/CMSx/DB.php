@@ -56,15 +56,16 @@ class DB
     self::ERROR_QUERY                   => 'Ошибка выполнения "%s": %s',
   );
 
-  /**
-   * Задаем префикс по умолчанию для всех запросов
-   * @static
-   *
-   * @param $prefix
-   */
+  /** Префикс по умолчанию для всех запросов */
   public static function SetPrefix($prefix)
   {
     self::$prefix = $prefix;
+  }
+
+  /** Префикс по умолчанию для всех запросов */
+  public static function GetPrefix()
+  {
+    return self::$prefix;
   }
 
   /**
