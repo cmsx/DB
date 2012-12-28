@@ -17,8 +17,20 @@ class DBTest extends PHPUnit_Framework_TestCase
 
     $this->createTable();
 
-    $res = DB::Select($this->table)->fetchAll();
-    $this->assertEquals(2, count($res), 'Две записи');
+    $stmt = DB::Execute('SHOW TABLES');
+    $this->assertEquals('PDOStatement', get_class($stmt), 'Получен объект PDOStatement');
+    $arr = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $ok = false;
+    foreach ($arr as $r) { //Ищем свежесозданную таблицу
+      if ($r['Tables_in_cmsx_test'] == $this->table) {
+        $ok = true;
+      }
+    }
+    $this->assertTrue($ok, 'Таблица была создана');
+
+    $stmt = DB::Select($this->table)->fetchAll();
+    $this->assertEquals(2, count($stmt), 'Две записи');
 
     $count = DB::Select($this->table)
       ->columns('count(*) as total')
@@ -32,10 +44,10 @@ class DBTest extends PHPUnit_Framework_TestCase
     $this->assertEquals('CMSx\DB\Item', get_class($one), 'Выгрузка в объект');
     $this->assertEquals('two', $one->get('name'), 'Запись с name=two');
 
-    $res = DB::Select($this->table)->fetchAllByPair('name', 'is_active');
-    $this->assertEquals(2, count($res), 'Два элемента в массиве');
-    $this->assertEquals($res['one'], 0, 'one => 0');
-    $this->assertEquals($res['two'], 1, 'two => 1');
+    $stmt = DB::Select($this->table)->fetchAllByPair('name', 'is_active');
+    $this->assertEquals(2, count($stmt), 'Два элемента в массиве');
+    $this->assertEquals($stmt['one'], 0, 'one => 0');
+    $this->assertEquals($stmt['two'], 1, 'two => 1');
 
     DB::Update($this->table)
       ->set('name', 'Hello')
@@ -43,16 +55,16 @@ class DBTest extends PHPUnit_Framework_TestCase
       ->bind('name', 'one')
       ->execute();
 
-    $res = DB::Select($this->table)
+    $stmt = DB::Select($this->table)
       ->where(array('name' => 'Hello'))
       ->fetch();
 
     $exp = array('id' => 1, 'is_active' => 0, 'name' => 'Hello');
-    $this->assertEquals($exp, $res, 'Одна запись в виде ассоциативного массива');
+    $this->assertEquals($exp, $stmt, 'Одна запись в виде ассоциативного массива');
 
     DB::Delete($this->table)->where(1)->execute();
-    $res = DB::Select($this->table)->where(1)->fetchOne();
-    $this->assertFalse($res, 'Элемент был удален');
+    $stmt = DB::Select($this->table)->where(1)->fetchOne();
+    $this->assertFalse($stmt, 'Элемент был удален');
 
     $this->dropTable();
 
