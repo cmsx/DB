@@ -5,11 +5,6 @@ namespace CMSx\DB\Query;
 use CMSx\DB\Query;
 use CMSx\DB\Builder;
 
-/**
- * @method Update bind($key, $value) Бинд произвольной переменной в запрос
- * @method Update bindArray(array $values) Бинд произвольных переменных в запрос из массива ключ-значение
- * @method Update setPrefix($prefix) Префикс для всех таблиц в запросах
- */
 class Update extends Query
 {
   public function make($bind_values = false)

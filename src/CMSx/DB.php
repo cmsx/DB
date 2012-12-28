@@ -12,6 +12,7 @@ use CMSx\DB\Query\Select;
 use CMSx\DB\Query\Truncate;
 use CMSx\DB\Query\Update;
 use CMSx\DB\Exception;
+use CMSx\DB\Connection;
 
 class DB
 {
@@ -76,7 +77,11 @@ class DB
   public static function Execute($sql, $values = null)
   {
     if (!self::$connection) {
-      self::ThrowError(self::ERROR_NO_CONNECTION);
+      try {
+        self::$connection = Connection::Get();
+      } catch (\Exception $e) {
+        self::ThrowError(self::ERROR_NO_CONNECTION);
+      }
     }
     if (!(self::$connection instanceof \PDO)) {
       self::ThrowError(self::ERROR_BAD_CONNECTION);

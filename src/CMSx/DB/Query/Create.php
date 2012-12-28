@@ -49,7 +49,7 @@ class Create extends Query
     }
 
     $this->sql = 'CREATE TABLE ' . Builder::QuoteTable($this->table, $this->prefix) . " (\n  "
-      . join(",\n  ", $parts) . "\n) TYPE=" . $this->definition['type'];
+      . join(",\n  ", $parts) . "\n) ENGINE=" . $this->definition['type'];
 
     return $this->sql;
   }

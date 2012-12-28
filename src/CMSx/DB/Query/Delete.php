@@ -5,11 +5,6 @@ namespace CMSx\DB\Query;
 use CMSx\DB\Query;
 use CMSx\DB\Builder;
 
-/**
- * @method Delete bind($key, $value) Бинд произвольной переменной в запрос
- * @method Delete bindArray(array $values) Бинд произвольных переменных в запрос из массива ключ-значение
- * @method Delete setPrefix($prefix) Префикс для всех таблиц в запросах
- */
 class Delete extends Query
 {
   public function make($bind_values = false)

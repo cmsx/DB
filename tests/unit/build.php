@@ -248,7 +248,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
       . '  UNIQUE INDEX `u_title` (`title`),'."\n"
       . '  FULLTEXT `f_title_text` (`title`, `text`),'."\n"
       . '  PRIMARY KEY (`id`)'."\n"
-      . ') TYPE=MyISAM';
+      . ') ENGINE=MyISAM';
     $this->assertEquals($exp, $sql->make(), 'Создание таблицы с индексами');
   }
 

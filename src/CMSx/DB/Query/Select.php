@@ -6,11 +6,6 @@ use CMSx\DB;
 use CMSx\DB\Query;
 use CMSx\DB\Builder;
 
-/**
- * @method Select bind($key, $value) Бинд произвольной переменной в запрос
- * @method Select bindArray(array $values) Бинд произвольных переменных в запрос из массива ключ-значение
- * @method Select setPrefix($prefix) Префикс для всех таблиц в запросах
- */
 class Select extends Query
 {
   public function make($bind_values = false)
