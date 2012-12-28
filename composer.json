@@ -1,6 +1,6 @@
 {
     "name":"cmsx/db",
-    "version":"0.0.1",
+    "version":"0.1",
     "type":"library",
     "description":"CMSx DB Component",
     "homepage":"http://cmsx.ru",
