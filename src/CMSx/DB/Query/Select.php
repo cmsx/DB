@@ -213,6 +213,10 @@ class Select extends Query
   /** Формирование ограничения LIMIT для постраничности */
   public function page($page, $onpage)
   {
+    if (empty($page) || $page < 1) {
+      $page = 1;
+    }
+
     $this->limit($onpage, (($page - 1) * $onpage));
 
     return $this;

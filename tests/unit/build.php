@@ -86,6 +86,14 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $sql = DB::Select('pages')->page(3, 5)->make();
     $exp = 'SELECT * FROM `pages` LIMIT 10, 5';
     $this->assertEquals($exp, $sql, 'Постраничная выборка 3-я страница, по 5 штук на странице');
+
+    $sql = DB::Select('pages')->page(null, null)->make();
+    $exp = 'SELECT * FROM `pages`';
+    $this->assertEquals($exp, $sql, 'Пустой вызов page()');
+
+    $sql = DB::Select('pages')->page(null, 20)->make();
+    $exp = 'SELECT * FROM `pages` LIMIT 20';
+    $this->assertEquals($exp, $sql, 'Вызов page() только с onpage');
   }
 
   function testSelectJoin()
