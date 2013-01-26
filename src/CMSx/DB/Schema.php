@@ -30,6 +30,49 @@ abstract class Schema
     }
   }
 
+  /** Формирует код класс модели, возвращает в виде string */
+  public function buildModel($name, $namespace = null)
+  {
+    $def = $this->getDefinition('columns');
+
+    $out  = "<?php\n\n";
+    $func = array();
+
+    if ($namespace) {
+      $out .= "namespace {$namespace};\n\n";
+    }
+
+    $out .= "use CMSx\\DB\\Item;\n\n"
+      . "/** Этот класс был создан автоматически " . date('d.m.Y H:i') . " по схеме " . get_called_class() . " */\n"
+      . "class {$name} extends Item\n{\n  protected static \$default_table = '{$this->table}';\n\n";
+
+    foreach ($def as $col => $def) {
+      $a = explode('_', $col);
+      array_walk(
+        $a, function (&$part) {
+          $part = ucfirst($part);
+        }
+      );
+      $col_name = join('', $a);
+      if (false !== mb_stripos($def, 'FLOAT', null, 'utf8')) {
+        $get = "  public function get{$col_name}(\$decimals = null, \$point = null, \$thousands = null)\n  {\n    "
+          . "return \$this->getAsFloat('{$col}', \$decimals, \$point, \$thousands);\n  }";
+        $set = "  public function set{$col_name}(\${$col})\n  {\n    return \$this->set('{$col}', \${$col});\n  }";
+      } elseif (false !== mb_stripos($def, 'TIMESTAMP', null, 'utf8')) {
+        $get = "  public function get{$col_name}(\$format = null)\n  {\n    "
+          . "return \$this->getAsDate('{$col}', \$format);\n  }";
+        $set = "  public function set{$col_name}(\${$col})\n  {\n    "
+          . "return \$this->setAsDate('{$col}', \${$col});\n  }";
+      } else {
+        $get = "  public function get{$col_name}()\n  {\n    return \$this->get('{$col}');\n  }";
+        $set = "  public function set{$col_name}(\${$col})\n  {\n    return \$this->set('{$col}', \${$col});\n  }";
+      }
+      $func[] = $get . "\n\n" . $set . "\n";
+    }
+
+    return $out . join("\n", $func) . "}\n";
+  }
+
   /** Создание таблицы */
   public function createTable($drop = false)
   {

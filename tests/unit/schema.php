@@ -35,6 +35,7 @@ class Schema2 extends Schema
       ->addId()
       ->addPrice('price')
       ->addChar('title')
+      ->addTimeCreated()
       ->addText();
   }
 }
@@ -126,6 +127,14 @@ class SchemaTest extends PHPUnit_Framework_TestCase
         'Extra'   => '',
       ),
       array(
+        'Field'   => 'created_at',
+        'Type'    => 'timestamp',
+        'Null'    => 'NO',
+        'Key'     => '',
+        'Default' => 'CURRENT_TIMESTAMP',
+        'Extra'   => '',
+      ),
+      array(
         'Field'   => 'text',
         'Type'    => 'text',
         'Null'    => 'YES',
@@ -136,6 +145,30 @@ class SchemaTest extends PHPUnit_Framework_TestCase
     );
     $stmt = DB::Execute('DESCRIBE `test_me`');
     $this->assertEquals($exp, $stmt->fetchAll(PDO::FETCH_ASSOC), 'Таблица обновилась корректно');
+  }
+
+  function testBuildModel()
+  {
+    $s = new Schema2();
+    $code = $s->buildModel('TestModel');
+
+    $file = __DIR__ . '/../tmp/TestModel.php';
+    file_put_contents($file, $code);
+    $this->assertTrue(is_file($file), 'Файл модели создался');
+
+    require_once $file;
+    $m = new TestModel;
+
+    $m->setTitle('One');
+    $this->assertEquals('One', $m->getTitle(), 'Обычные значения');
+
+    $m->setCreatedAt('2012-12-21 12:21');
+    $this->assertEquals('21.12.2012', $m->getCreatedAt(), 'Формат даты по-умолчанию');
+    $this->assertEquals('21.12.2012 12:21', $m->getCreatedAt('d.m.Y H:i'), 'Произвольный формат даты');
+
+    $m->setPrice(12345.6789);
+    $this->assertEquals(12345.68, $m->getPrice(), 'Форматирование по-умолчанию');
+    $this->assertEquals('12`345,67890', $m->getPrice(5, ',', '`'), 'Произвольное форматирование');
   }
 
   protected function tearDown()

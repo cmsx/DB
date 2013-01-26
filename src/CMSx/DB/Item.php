@@ -132,8 +132,17 @@ class Item extends Container
   }
 
   /** NumberFormat для числового поля */
-  public function getAsFloat($column, $decimals = 2, $point = '.', $thousands = '')
+  public function getAsFloat($column, $decimals = null, $point = null, $thousands = null)
   {
+    if (is_null($decimals)) {
+      $decimals = 2;
+    }
+    if (is_null($point)) {
+      $point = '.';
+    }
+    if (is_null($thousands)) {
+      $thousands = '';
+    }
     $v = $this->get($column);
 
     return $v ? number_format($v, $decimals, $point, $thousands) : false;
