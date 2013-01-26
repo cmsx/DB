@@ -182,6 +182,46 @@ class ItemTest extends PHPUnit_Framework_TestCase
     $this->assertEmpty($i->get('name'), 'Удаление с очищением объекта');
   }
 
+  /**
+   * @dataProvider dateFormatsGet
+   */
+  function testGetAsDate($date, $format, $exp, $msg)
+  {
+    $i = new Item;
+    $i->set('date', $date);
+    $this->assertEquals($exp, $i->getAsDate('date', $format), $msg);
+  }
+
+  function dateFormatsGet()
+  {
+    //$date, $format, $exp, $msg
+    return array(
+      array(false, null, false, 'Нулевая дата #1'),
+      array('0000-00-00 00:00:00', null, false, 'Нулевая дата #2'),
+      array('2012-01-10', null, '10.01.2012', 'Год вначале'),
+      array('21.12.2012', 'Y-m-d H:i', '2012-12-21 00:00', 'Преобразование'),
+    );
+  }
+
+  /**
+   * @dataProvider dateFormatsSet
+   */
+  function testSetAsDate($value, $exp, $msg)
+  {
+    $i = new Item;
+    $i->setAsDate('date', $value);
+    $this->assertEquals($exp, $i->getAsDate('date'), $msg);
+  }
+
+  function dateFormatsSet()
+  {
+    //$value, $exp, $msg
+    return array(
+      array('12.01.2012', '12.01.2012', 'Сквозное преобразование'),
+      array('2012-01-01 00:00', '01.01.2012', 'Разные форматы')
+    );
+  }
+
   protected function setUp()
   {
     if ($this->checkConnection()) {

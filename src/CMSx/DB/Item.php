@@ -115,6 +115,22 @@ class Item extends Container
     return $this->table ? : static::$default_table;
   }
 
+  /** Приведение поля с датой в нужный формат */
+  public function getAsDate($column, $format = null)
+  {
+    $t = strtotime($this->get($column));
+
+    return $t > 0 ? date($format ? : 'd.m.Y', $t) : false;
+  }
+
+  /** Установка значения поля с датой */
+  public function setAsDate($column, $value)
+  {
+    $this->set($column, date('Y-m-d H:i:s', strtotime($value)));
+
+    return $this;
+  }
+
   /**
    * Найти элементы. Возвращает false если ничего не найдено
    *
