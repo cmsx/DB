@@ -4,6 +4,7 @@ require_once __DIR__ . '/../init.php';
 
 use CMSx\DB;
 use CMSx\DB\Item;
+use CMSx\DB\Exception;
 use CMSx\DB\Connection;
 
 class DBTest extends PHPUnit_Framework_TestCase

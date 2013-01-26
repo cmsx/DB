@@ -2,6 +2,8 @@
 
 namespace CMSx\DB;
 
+use CMSx\DB;
+
 abstract class Builder
 {
   public static function BuildJoin($join)
@@ -152,10 +154,10 @@ abstract class Builder
   public static function BuildReferenceAction($action)
   {
     switch ($action) {
-      case SQL::FOREIGN_CASCADE:
+      case DB::FOREIGN_CASCADE:
         return 'CASCADE';
         break;
-      case SQL::FOREIGN_SET_NULL:
+      case DB::FOREIGN_SET_NULL:
         return 'SET NULL';
         break;
       default:

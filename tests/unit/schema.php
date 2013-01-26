@@ -5,6 +5,7 @@ require_once __DIR__ . '/../init.php';
 use CMSx\DB;
 use CMSx\DB\Schema;
 use CMSx\DB\Connection;
+use CMSx\DB\Exception;
 
 //Изначальная схема таблицы в БД
 class Schema1 extends Schema
@@ -42,6 +43,8 @@ class SchemaTest extends PHPUnit_Framework_TestCase
 {
   function testCreate()
   {
+    $this->needConnection();
+
     //Создаем таблицу
     $s = new Schema1();
     $this->assertEquals('test_me', $s->getTable(), 'Имя таблицы');
@@ -89,7 +92,7 @@ class SchemaTest extends PHPUnit_Framework_TestCase
     try {
       $s->createTable();
       $this->fail('Таблица уже существует');
-    } catch (\CMSx\DB\Exception $e) {
+    } catch (Exception $e) {
     }
 
     //Меняем схему
@@ -147,6 +150,12 @@ class SchemaTest extends PHPUnit_Framework_TestCase
 
   function dropTable()
   {
+    try {
+      Connection::Get();
+    } catch (Exception $e) {
+      return; //Если нет соединения, дропать ничего не требуется
+    }
+
     DB::Drop('test_me')->execute();
   }
 

@@ -234,12 +234,12 @@ class BuildTest extends PHPUnit_Framework_TestCase
       ->addId()
       ->addChar('title')
       ->addForeignId()
+      ->addForeignKey('parent_id', 'pages', 'id', DB::FOREIGN_CASCADE)
       ->addEnum('type', array('abc', 'cde'))
       ->addPrice()
       ->addText()
       ->addIndex('title', 'parent_id')
-      ->addUniqueIndex('title')
-      ->addFulltextIndex('title', 'text');
+      ->addUniqueIndex('title');
     $exp = 'CREATE TABLE `pages` (' . "\n"
       . '  `id` INT UNSIGNED AUTO_INCREMENT,' . "\n"
       . '  `title` VARCHAR(250) DEFAULT NULL,' . "\n"
@@ -249,10 +249,33 @@ class BuildTest extends PHPUnit_Framework_TestCase
       . '  `text` TEXT,' . "\n"
       . '  INDEX `i_title_parent_id` (`title`, `parent_id`),' . "\n"
       . '  UNIQUE INDEX `u_title` (`title`),' . "\n"
+      . '  PRIMARY KEY (`id`),' . "\n"
+      . '  FOREIGN KEY `fk_parent_id` (`parent_id`) REFERENCES `pages`(`id`) ON DELETE CASCADE ON UPDATE CASCADE' . "\n"
+      . ') ENGINE=InnoDB';
+    $this->assertEquals($exp, $sql->make(), 'Создание таблицы с индексами');
+  }
+
+  function testCreateFulltext()
+  {
+    $sql = DB::Create('pages')
+      ->addId()
+      ->addText()
+      ->addFulltextIndex('title', 'text');
+
+    $exp = 'CREATE TABLE `pages` (' . "\n"
+      . '  `id` INT UNSIGNED AUTO_INCREMENT,' . "\n"
+      . '  `text` TEXT,' . "\n"
       . '  FULLTEXT `f_title_text` (`title`, `text`),' . "\n"
       . '  PRIMARY KEY (`id`)' . "\n"
       . ') ENGINE=MyISAM';
-    $this->assertEquals($exp, $sql->make(), 'Создание таблицы с индексами');
+    $this->assertEquals($exp, $sql->make(), 'Создание полнотекстового индекса');
+
+    try {
+      $sql->setType(DB::TYPE_InnoDB);
+      $this->fail('Полнотекстовый поиск доступен только для MyISAM');
+    } catch (\CMSx\DB\Exception $e) {
+      $this->assertEquals(DB::ERROR_FULLTEXT_ONLY_MYISAM, $e->getCode(), 'Код ошибки соответствует');
+    }
   }
 
   function testAlter()

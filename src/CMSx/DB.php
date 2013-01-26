@@ -16,10 +16,14 @@ use CMSx\DB\Connection;
 
 class DB
 {
+  /** Не настроено соединение с БД */
+  const ERROR_NO_CONNECTION_AVAILABLE = 10;
+  /** Невозможно подключиться к БД */
+  const ERROR_CANT_CONNECT = 11;
   /** В объекте нет соединения */
-  const ERROR_NO_CONNECTION = 10;
+  const ERROR_NO_CONNECTION = 15;
   /** Соединение не является объектом PDO */
-  const ERROR_BAD_CONNECTION = 11;
+  const ERROR_BAD_CONNECTION = 16;
   /** Ошибка при select`е по паре ключ-значение, нет такого ключа */
   const ERROR_SELECT_BY_PAIR_NO_KEY = 20;
   /** Ошибка при select`е по паре ключ-значение, нет такого значения */
@@ -48,6 +52,8 @@ class DB
   protected static $connection;
 
   protected static $errors_arr = array(
+    self::ERROR_NO_CONNECTION_AVAILABLE => 'Не настроено соединение с БД',
+    self::ERROR_CANT_CONNECT            => 'Невозможно подключиться к БД',
     self::ERROR_NO_CONNECTION           => 'Для запросов не указано соединения',
     self::ERROR_BAD_CONNECTION          => 'Соединение не является объектом PDO',
     self::ERROR_SELECT_BY_PAIR_NO_KEY   => 'В запросе нет ключа "%s"',

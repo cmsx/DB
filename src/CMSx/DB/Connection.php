@@ -2,6 +2,9 @@
 
 namespace CMSx\DB;
 
+use CMSx\DB;
+use CMSx\DB\Exception;
+
 class Connection
 {
   protected $host;
@@ -37,7 +40,7 @@ class Connection
   /**
    * Инициализация соединения
    * @return \PDO
-   * @throws \Exception
+   * @throws Exception
    */
   protected function PDO()
   {
@@ -48,8 +51,8 @@ class Connection
         if (!is_null($this->charset)) {
           $this->connection->query('SET NAMES ' . $this->charset);
         }
-      } catch (\Exception $e) {
-        throw new \Exception ('Не могу подключиться к БД!');
+      } catch (\PDOException $e) {
+        DB::ThrowError(DB::ERROR_CANT_CONNECT);
       }
     }
 
@@ -82,7 +85,7 @@ class Connection
       return self::$cons[$name]->PDO();
     } else {
       if ($name == self::DEFAULT_NAME) {
-        throw new \Exception('Не настроено соединение с БД');
+        DB::ThrowError(DB::ERROR_NO_CONNECTION_AVAILABLE);
       }
 
       return false;
