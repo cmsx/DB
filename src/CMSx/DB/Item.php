@@ -4,6 +4,7 @@ namespace CMSx\DB;
 
 use CMSx\DB;
 use CMSx\Container;
+use CMSx\DB\Exception;
 
 class Item extends Container
 {
@@ -19,13 +20,14 @@ class Item extends Container
     }
   }
 
-  /** Загрузка объекта из БД */
+  /**
+   * Загрузка объекта из БД по ID
+   * @throws Exception Если объект не найден
+   */
   public function load($id = null)
   {
-    $exc_str = get_called_class() . '->load(' . $id . '): ';
-
     if (!$table = $this->getTable()) {
-      throw new Exception($exc_str . 'для объекта не указана таблица');
+      DB::ThrowError(DB::ERROR_ITEM_NO_TABLE, get_called_class(), 'load', $id);
     }
 
     if (is_null($id)) {
@@ -33,12 +35,15 @@ class Item extends Container
     }
 
     if (!$id) {
-      throw new Exception($exc_str . 'для объекта не указан ID');
+      DB::ThrowError(DB::ERROR_ITEM_NO_ID, get_called_class(), 'load', $id);
     }
 
-    $this->vars = DB::Select($table)->where($id)->fetchOne();
+    if ($res = DB::Select($table)->where($id)->fetchOne()) {
+      $this->vars = $res;
+      return $this;
+    }
 
-    return $this;
+    DB::ThrowError(DB::ERROR_ITEM_LOAD_NOT_FOUND, get_called_class(), 'load', $id);
   }
 
   /**
@@ -49,7 +54,7 @@ class Item extends Container
   public function save()
   {
     if (!$table = $this->getTable()) {
-      throw new Exception(get_called_class() . '->save(): для объекта не указана таблица');
+      DB::ThrowError(DB::ERROR_ITEM_NO_TABLE, get_called_class(), 'save', null);
     }
 
     if ($id = $this->get('id')) {
@@ -77,13 +82,12 @@ class Item extends Container
    */
   public function delete($clean = true)
   {
-    $exc_str = get_called_class() . '->delete(' . var_export($clean, true) . '): ';
     if (!$table = $this->getTable()) {
-      throw new Exception($exc_str . 'для объекта не указана таблица');
+      DB::ThrowError(DB::ERROR_ITEM_NO_TABLE, get_called_class(), 'delete', var_export($clean, true));
     }
 
     if (!$id = $this->get('id')) {
-      throw new Exception($exc_str . 'для объекта не указан ID');
+      DB::ThrowError(DB::ERROR_ITEM_NO_ID, get_called_class(), 'delete', var_export($clean, true));
     }
 
     $this->beforeDelete($id);
@@ -109,6 +113,47 @@ class Item extends Container
   public function getTable()
   {
     return $this->table ? : static::$default_table;
+  }
+
+  /**
+   * Найти элементы. Возвращает false если ничего не найдено
+   *
+   * @return Item[]
+   */
+  public static function Find($where = null, $orderby = null, $onpage = null, $page = null)
+  {
+    $c = get_called_class();
+
+    return DB::Select(static::$default_table)
+      ->where($where)
+      ->orderby($orderby)
+      ->page($page, $onpage)
+      ->fetchAllInObject($c);
+  }
+
+  /**
+   * Найти один элемент
+   *
+   * @return Item
+   */
+  public static function FindOne($where, $orderby = null)
+  {
+    $c = get_called_class();
+
+    return DB::Select(static::$default_table)
+      ->where($where)
+      ->orderby($orderby)
+      ->limit(1)
+      ->fetchObject($c);
+  }
+
+  /** Подсчет количества элементов в таблице */
+  public static function Count($where = null)
+  {
+    return (int)DB::Select(static::$default_table)
+      ->columns('count(*) as `total`')
+      ->where($where)
+      ->fetchOne('total');
   }
 
   /**

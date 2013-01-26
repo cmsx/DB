@@ -82,53 +82,6 @@ class DBTest extends PHPUnit_Framework_TestCase
     }
   }
 
-  function testItem()
-  {
-    $this->needConnection();
-
-    $this->createTable();
-
-    try {
-      $i = new Item();
-      $i->load(1);
-      $this->fail('Таблица не указана');
-    } catch (\CMSx\DB\Exception $e) {
-    }
-
-    $i = $this->getItem();
-    $this->assertFalse($i->get('name'), 'Элемент еще не загружен');
-    $i->load(1);
-
-    $this->assertEquals('one', $i->get('name'), 'Загружен элемент one');
-
-    $i->set('name', 'Hello');
-    $i->save();
-
-    $name = DB::Select($this->table)
-      ->where(1)
-      ->fetchOne('name');
-
-    $this->assertEquals('Hello', $name, 'Значение обновилось в БД');
-
-    $i = $this->getItem();
-    $i->set('id', 2)->load();
-    $this->assertEquals('two', $i->get('name'), 'ID задан в объекте - в load() ID можно не указывать');
-
-    $i->delete();
-
-    $res = DB::Select($this->table)->where(2)->fetchOne();
-    $this->assertFalse($res, 'Запись была удалена');
-    $this->assertFalse($i->get('id'), 'Данные из объекта стерты');
-
-    try {
-      $i->delete();
-      $this->fail('Без ID удаление невозможно');
-    } catch (\Exception $e) {
-    }
-
-    $this->dropTable();
-  }
-
   function createTable()
   {
     $this->dropTable();
@@ -151,20 +104,6 @@ class DBTest extends PHPUnit_Framework_TestCase
   function dropTable()
   {
     DB::Drop($this->table)->execute();
-  }
-
-  /**
-   * Создание объекта и настройка.
-   * Аналогично можно отнаследовать и переопределить метод init()
-   *
-   * @return CMSx\DB\Item
-   */
-  function getItem()
-  {
-    $i = new Item();
-    $i->setTable($this->table);
-
-    return $i;
   }
 
   function needConnection()

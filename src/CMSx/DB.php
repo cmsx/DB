@@ -32,6 +32,12 @@ class DB
   const ERROR_FULLTEXT_ONLY_MYISAM = 31;
   /** Ошибка при выполнении запросе */
   const ERROR_QUERY = 40;
+  /** Для объекта Item не указана таблица */
+  const ERROR_ITEM_NO_TABLE = 50;
+  /** Ошибка при загрузке объекта Item не указан ID */
+  const ERROR_ITEM_NO_ID = 51;
+  /** Ошибка при загрузке объекта Item по ID */
+  const ERROR_ITEM_LOAD_NOT_FOUND = 52;
 
   /** Тип таблиц MyISAM принят по умолчанию в MySQL */
   const TYPE_MyISAM = 'MyISAM';
@@ -60,6 +66,9 @@ class DB
     self::ERROR_SELECT_BY_PAIR_NO_VALUE => 'В запросе нет значений "%s"',
     self::ERROR_FULLTEXT_ONLY_MYISAM    => 'Попытка назначения полнотекстового индекса таблице "%s" с типом "%s"',
     self::ERROR_QUERY                   => 'Ошибка выполнения "%s": %s',
+    self::ERROR_ITEM_NO_TABLE           => '%s->%s(%s): для объекта не указана таблица',
+    self::ERROR_ITEM_NO_ID              => '%s->%s(%s): для объекта не указан ID',
+    self::ERROR_ITEM_LOAD_NOT_FOUND     => '%s->%s(%s): объект не найден',
   );
 
   /** Префикс по умолчанию для всех запросов */
