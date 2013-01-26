@@ -131,6 +131,14 @@ class Item extends Container
     return $this;
   }
 
+  /** NumberFormat для числового поля */
+  public function getAsFloat($column, $decimals = 2, $point = '.', $thousands = '')
+  {
+    $v = $this->get($column);
+
+    return $v ? number_format($v, $decimals, $point, $thousands) : false;
+  }
+
   /**
    * Найти элементы. Возвращает false если ничего не найдено
    *

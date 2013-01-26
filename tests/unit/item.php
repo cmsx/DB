@@ -222,6 +222,18 @@ class ItemTest extends PHPUnit_Framework_TestCase
     );
   }
 
+  function testGetFloatFormatted()
+  {
+    $i = new Item;
+    $i->set('price', 123456.789);
+
+    $exp = '123456.79';
+    $this->assertEquals($exp, $i->getAsFloat('price'), 'Приведение по-умолчанию');
+
+    $exp = '123`456,78900';
+    $this->assertEquals($exp, $i->getAsFloat('price', 5, ',', '`'), 'Форматирование');
+  }
+
   protected function setUp()
   {
     if ($this->checkConnection()) {
