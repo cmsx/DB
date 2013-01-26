@@ -102,6 +102,16 @@ abstract class Schema
   }
 
   /**
+   * Запрос для создания таблицы
+   *
+   * @return Query\Create
+   */
+  public function getQuery()
+  {
+    return $this->query;
+  }
+
+  /**
    * Получение компонентов запроса
    *
    * * type - тип таблицы DB::TYPE_*
