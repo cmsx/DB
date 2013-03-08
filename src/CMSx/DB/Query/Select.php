@@ -12,7 +12,7 @@ class Select extends Query
   {
     $this->sql = 'SELECT '
       . ($this->columns ? Builder::BuildNames($this->columns) : '*')
-      . ' FROM ' . Builder::QuoteTable($this->table, $this->prefix)
+      . ' FROM ' . Builder::QuoteTable($this->table, $this->getPrefix())
       . Builder::BuildJoin($this->join)
       . Builder::BuildWhere($this->where, $bind_values, $this->where_and)
       . Builder::BuildGroupBy($this->groupby)

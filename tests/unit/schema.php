@@ -4,16 +4,19 @@ require_once __DIR__ . '/../init.php';
 
 use CMSx\DB;
 use CMSx\DB\Schema;
-use CMSx\DB\Connection;
 use CMSx\DB\Exception;
 
 //Изначальная схема таблицы в БД
 class Schema1 extends Schema
 {
+  public function getTable()
+  {
+    return 'test_me';
+  }
+
   protected function init()
   {
-    $this->table = 'test_me';
-    $this->query = DB::Create($this->table)
+    $this->getQuery()
       ->addId()
       ->addChar('name')
       ->addInt('price')
@@ -27,11 +30,15 @@ class Schema1 extends Schema
  */
 class Schema2 extends Schema
 {
+  public function getTable()
+  {
+    return 'test_me';
+  }
+
   protected function init()
   {
-    $this->table = 'test_me';
     $this->name  = 'My Test';
-    $this->query = DB::Create($this->table)
+    $this->getQuery()
       ->addId()
       ->addPrice('price')
       ->addChar('title')
@@ -44,10 +51,8 @@ class SchemaTest extends PHPUnit_Framework_TestCase
 {
   function testCreate()
   {
-    $this->needConnection();
-
     //Создаем таблицу
-    $s = new Schema1();
+    $s = new Schema1($this->getDB());
     $this->assertEquals('test_me', $s->getTable(), 'Имя таблицы');
     $this->assertEquals('Test Me', $s->getName(), 'Автоматически созданное название таблицы');
 
@@ -87,7 +92,7 @@ class SchemaTest extends PHPUnit_Framework_TestCase
         'Extra'   => '',
       ),
     );
-    $stmt = DB::Execute('DESCRIBE `test_me`');
+    $stmt = $this->getDB()->query('DESCRIBE `test_me`');
     $this->assertEquals($exp, $stmt->fetchAll(PDO::FETCH_ASSOC), 'Таблица создалась корректно');
 
     try {
@@ -97,7 +102,7 @@ class SchemaTest extends PHPUnit_Framework_TestCase
     }
 
     //Меняем схему
-    $s = new Schema2();
+    $s = new Schema2($this->getDB());
     $this->assertEquals('My Test', $s->getName(), 'Произвольное название таблицы');
     $s->updateTable();
 
@@ -143,13 +148,13 @@ class SchemaTest extends PHPUnit_Framework_TestCase
         'Extra'   => '',
       ),
     );
-    $stmt = DB::Execute('DESCRIBE `test_me`');
+    $stmt = $this->getDB()->query('DESCRIBE `test_me`');
     $this->assertEquals($exp, $stmt->fetchAll(PDO::FETCH_ASSOC), 'Таблица обновилась корректно');
   }
 
   function testBuildModel()
   {
-    $s = new Schema2();
+    $s = new Schema2($this->getDB());
     $code = $s->buildModel('TestModel');
 
     $file = __DIR__ . '/../tmp/TestModel.php';
@@ -183,21 +188,20 @@ class SchemaTest extends PHPUnit_Framework_TestCase
 
   function dropTable()
   {
-    try {
-      Connection::Get();
-    } catch (Exception $e) {
-      return; //Если нет соединения, дропать ничего не требуется
-    }
-
-    DB::Drop('test_me')->execute();
+    $this->getDB()->drop('test_me')->execute();
   }
 
-  function needConnection()
+  function getDB()
+  {
+    return new DB($this->getPDO());
+  }
+
+  function getPDO()
   {
     try {
-      Connection::Get();
-    } catch (Exception $e) {
-      $this->markTestSkipped('Не настроено подключение к БД: см. файл tests/config.php');
+      return DB::PDO('localhost', 'test', 'test', 'test');
+    } catch (PDOException $e) {
+      $this->markTestSkipped('Нет подключения к БД');
     }
   }
 }

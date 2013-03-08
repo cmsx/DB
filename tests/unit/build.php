@@ -8,57 +8,57 @@ class BuildTest extends PHPUnit_Framework_TestCase
 {
   function testSelectPrefix()
   {
-    $sql = DB::Select('pages')->setPrefix('yeah_')->make();
+    $sql = $this->select('pages')->setPrefix('yeah_')->make();
     $exp = 'SELECT * FROM `yeah_pages`';
     $this->assertEquals($exp, $sql, 'Префикс подставляется если имя таблицы простое');
 
-    $sql = DB::Select('pages p')->setPrefix('yeah_')->make();
+    $sql = $this->select('pages p')->setPrefix('yeah_')->make();
     $exp = 'SELECT * FROM `yeah_pages` `p`';
     $this->assertEquals($exp, $sql, 'Префикс подставляется если имя таблицы простое и содержит альяс');
 
-    $sql = DB::Select('`pages`')->setPrefix('yeah_')->make();
+    $sql = $this->select('`pages`')->setPrefix('yeah_')->make();
     $exp = 'SELECT * FROM `pages`';
     $this->assertEquals($exp, $sql, 'Если имя таблицы содержит "`", префикс не подставляется');
 
-    $sql = DB::Select('pages p, users u')->setPrefix('yeah_')->make();
+    $sql = $this->select('pages p, users u')->setPrefix('yeah_')->make();
     $exp = 'SELECT * FROM pages p, users u';
     $this->assertEquals($exp, $sql, 'Если имя таблицы содержит ",", префикс не подставляется');
   }
 
   function testSelectByID()
   {
-    $sql = DB::Select('pages')->where(12)->make();
+    $sql = $this->select('pages')->where(12)->make();
     $exp = 'SELECT * FROM `pages` WHERE `id`=:where_id';
     $this->assertEquals($exp, $sql, 'Выборка по ID');
   }
 
   function testSelectByWhereArray()
   {
-    $sql  = DB::Select('pages')->where(array('some' => 'thing'));
+    $sql  = $this->select('pages')->where(array('some' => 'thing'));
     $vals = $sql->getBindedValues();
     $exp  = 'SELECT * FROM `pages` WHERE `some`=:where_some';
     $this->assertEquals($exp, $sql->make(), 'Выборка по массиву условий');
     $this->assertEquals('thing', $vals[':where_some'], 'Успешно забиндилось');
 
-    $sql = DB::Select('pages')->where('`some`="thing"', '`another`>1');
+    $sql = $this->select('pages')->where('`some`="thing"', '`another`>1');
     $exp = 'SELECT * FROM `pages` WHERE `some`="thing" AND `another`>1';
     $this->assertEquals($exp, $sql->make(), 'Выборка по строковым условиям');
     $this->assertFalse($sql->getBindedValues(), 'Ничего не биндилось');
 
-    $sql = DB::Select('pages')->where(array('id' => 12, 'is_active' => 1));
+    $sql = $this->select('pages')->where(array('id' => 12, 'is_active' => 1));
     $exp = 'SELECT * FROM `pages` WHERE `id`=12 AND `is_active`=1';
     $this->assertEquals($exp, $sql->make(true), 'Значения подставляются в запрос');
     $this->assertEquals($exp, (string)$sql, 'Преобразование объекта в строку');
 
-    $sql = DB::Select('pages')->where(12, true);
+    $sql = $this->select('pages')->where(12, true);
     $exp = 'SELECT * FROM `pages` WHERE `id`=12 AND `is_active`=1';
     $this->assertEquals($exp, $sql->make(true), 'Значения подставляются в запрос');
   }
 
   function testSelectColumns()
   {
-    $sql1 = DB::Select('pages')->columns('id', '`title`', 'something');
-    $sql2 = DB::Select('pages')->columns(array('id', '`title`', 'something'));
+    $sql1 = $this->select('pages')->columns('id', '`title`', 'something');
+    $sql2 = $this->select('pages')->columns(array('id', '`title`', 'something'));
     $exp  = 'SELECT `id`, `title`, `something` FROM `pages`';
     $this->assertEquals($exp, $sql1->make(), 'Столбцы перечислением');
     $this->assertEquals($exp, $sql2->make(), 'Столбцы в массиве');
@@ -66,8 +66,8 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testSelectOrderBy()
   {
-    $sql1 = DB::Select('pages')->orderby('id', '`title`', 'something DESC');
-    $sql2 = DB::Select('pages')->orderby(array('id', '`title`', 'something DESC'));
+    $sql1 = $this->select('pages')->orderby('id', '`title`', 'something DESC');
+    $sql2 = $this->select('pages')->orderby(array('id', '`title`', 'something DESC'));
     $exp  = 'SELECT * FROM `pages` ORDER BY `id`, `title`, something DESC';
     $this->assertEquals($exp, $sql1->make(), 'Сортировка перечислением');
     $this->assertEquals($exp, $sql2->make(), 'Сортировка в массиве');
@@ -75,30 +75,30 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testSelectLimit()
   {
-    $sql = DB::Select('pages')->limit(5)->make();
+    $sql = $this->select('pages')->limit(5)->make();
     $exp = 'SELECT * FROM `pages` LIMIT 5';
     $this->assertEquals($exp, $sql, 'Выборка с ограничением 5 штук');
 
-    $sql = DB::Select('pages')->limit(5, 10)->make();
+    $sql = $this->select('pages')->limit(5, 10)->make();
     $exp = 'SELECT * FROM `pages` LIMIT 10, 5';
     $this->assertEquals($exp, $sql, 'Выборка с ограничением 5 штук и отступом 10');
 
-    $sql = DB::Select('pages')->page(3, 5)->make();
+    $sql = $this->select('pages')->page(3, 5)->make();
     $exp = 'SELECT * FROM `pages` LIMIT 10, 5';
     $this->assertEquals($exp, $sql, 'Постраничная выборка 3-я страница, по 5 штук на странице');
 
-    $sql = DB::Select('pages')->page(null, null)->make();
+    $sql = $this->select('pages')->page(null, null)->make();
     $exp = 'SELECT * FROM `pages`';
     $this->assertEquals($exp, $sql, 'Пустой вызов page()');
 
-    $sql = DB::Select('pages')->page(null, 20)->make();
+    $sql = $this->select('pages')->page(null, 20)->make();
     $exp = 'SELECT * FROM `pages` LIMIT 20';
     $this->assertEquals($exp, $sql, 'Вызов page() только с onpage');
   }
 
   function testSelectJoin()
   {
-    $sql = DB::Select('pages p')
+    $sql = $this->select('pages p')
       ->join('users u', 'u.id=p.user_id', 'left')
       ->join('non_users nu', 'nu.id=p.user_id', 'right')
       ->make();
@@ -109,7 +109,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testSelectBind()
   {
-    $sql = DB::Select('pages')
+    $sql = $this->select('pages')
       ->where('id > :min', 'status = :status')
       ->bind('min', 12)
       ->bind(':status', 'new')
@@ -126,7 +126,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testSelectHaving()
   {
-    $sql = DB::Select('pages')
+    $sql = $this->select('pages')
       ->columns('id', 'SUM(price) as `total`')
       ->groupby('parent_id')
       ->having('`total` > 0')
@@ -134,7 +134,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $exp = 'SELECT `id`, SUM(price) as `total` FROM `pages` GROUP BY `parent_id` HAVING `total` > 0';
     $this->assertEquals($exp, $sql, 'Запрос с условием Having');
 
-    $sql  = DB::Select('pages')
+    $sql  = $this->select('pages')
       ->columns('id', 'SUM(price) as `total`')
       ->groupby('parent_id')
       ->having(array('total' => 0));
@@ -146,7 +146,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testSelectAll()
   {
-    $sql = DB::Select('pages')
+    $sql = $this->select('pages')
       ->where(12)
       ->join('users u', 'u.id = p.user_id')
       ->columns('id', 'title')
@@ -161,7 +161,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testUpdate()
   {
-    $sql = DB::Update('pages')
+    $sql = $this->update('pages')
       ->where(12)
       ->set('id', 15)
       ->set('name', 'John')
@@ -179,7 +179,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testDelete()
   {
-    $sql  = DB::Delete('pages')
+    $sql  = $this->delete('pages')
       ->where(12, '`created_at` > now()')
       ->limit(3);
     $exp1 = 'DELETE FROM `pages` WHERE `created_at` > now() AND `id`=:where_id LIMIT 3';
@@ -191,7 +191,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testDrop()
   {
-    $sql = DB::Drop('pages');
+    $sql = $this->drop('pages');
     $this->assertEquals('DROP TABLE IF EXISTS `pages`', $sql->make(), 'Drop if exists таблицы');
 
     $sql->setIfExists(false);
@@ -200,7 +200,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testTruncate()
   {
-    $sql = DB::Truncate('pages');
+    $sql = $this->truncate('pages');
     $this->assertEquals('TRUNCATE TABLE `pages`', $sql->make(), 'Truncate таблицы');
   }
 
@@ -215,7 +215,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
       ':insert_another' => null
     );
 
-    $sql = DB::Insert('pages')
+    $sql = $this->insert('pages')
       ->setArray(
       array(
         'countme' => 12,
@@ -227,7 +227,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($exp2, $sql->make(true), 'Insert с подставленными значениями №1');
     $this->assertEquals($exp_arr, $sql->getBindedValues(), 'Значения пробиндились корректно №1');
 
-    $sql = DB::Insert('pages')
+    $sql = $this->insert('pages')
       ->set('countme', 12)
       ->set('foo', 'bar')
       ->set('another', null);
@@ -238,7 +238,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testCreate()
   {
-    $sql = DB::Create('pages')
+    $sql = $this->create('pages')
       ->addId()
       ->addChar('title')
       ->addForeignId()
@@ -265,7 +265,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testCreateFulltext()
   {
-    $sql = DB::Create('pages')
+    $sql = $this->create('pages')
       ->addId()
       ->addText()
       ->addFulltextIndex('title', 'text');
@@ -289,59 +289,99 @@ class BuildTest extends PHPUnit_Framework_TestCase
   function testAlter()
   {
     $exp = 'ALTER TABLE `pages` RENAME TO `not_pages`';
-    $sql = DB::Alter('pages')->rename('not_pages');
+    $sql = $this->alter('pages')->rename('not_pages');
     $this->assertEquals($exp, $sql->make(), 'Переименование таблицы');
 
     $exp0 = 'ALTER TABLE `pages` ADD COLUMN `name` VARCHAR(20)';
     $exp1 = 'ALTER TABLE `pages` ADD COLUMN `name` VARCHAR(20) FIRST';
     $exp2 = 'ALTER TABLE `pages` ADD COLUMN `name` VARCHAR(20) AFTER `id`';
-    $sql0 = DB::Alter('pages')->addColumn('name', 'VARCHAR(20)');
-    $sql1 = DB::Alter('pages')->addColumn('name', 'VARCHAR(20)', true);
-    $sql2 = DB::Alter('pages')->addColumn('name', 'VARCHAR(20)', 'id');
+    $sql0 = $this->alter('pages')->addColumn('name', 'VARCHAR(20)');
+    $sql1 = $this->alter('pages')->addColumn('name', 'VARCHAR(20)', true);
+    $sql2 = $this->alter('pages')->addColumn('name', 'VARCHAR(20)', 'id');
     $this->assertEquals($exp0, $sql0->make(), 'Создание столбца name');
     $this->assertEquals($exp1, $sql1->make(), 'Создание столбца name первым');
     $this->assertEquals($exp2, $sql2->make(), 'Создание столбца name после id');
 
     $exp = 'ALTER TABLE `pages` ADD INDEX `i_id_title` (`id`, `title`)';
-    $sql = DB::Alter('pages')->addIndex('id', 'title');
+    $sql = $this->alter('pages')->addIndex('id', 'title');
     $this->assertEquals($exp, $sql->make(), 'Добавление индекса');
 
     $exp = 'ALTER TABLE `pages` ADD PRIMARY KEY (`id`, `title`)';
-    $sql = DB::Alter('pages')->addPrimaryKey('id', 'title');
+    $sql = $this->alter('pages')->addPrimaryKey('id', 'title');
     $this->assertEquals($exp, $sql->make(), 'Создание первичного ключа');
 
     $exp = 'ALTER TABLE `pages` ADD FULLTEXT `f_id_title` (`id`, `title`)';
-    $sql = DB::Alter('pages')->addFulltextIndex('id', 'title');
+    $sql = $this->alter('pages')->addFulltextIndex('id', 'title');
     $this->assertEquals($exp, $sql->make(), 'Создание полнотекстового индекса');
 
     $exp = 'ALTER TABLE `pages` ADD UNIQUE `u_id_title` (`id`, `title`)';
-    $sql = DB::Alter('pages')->addUniqueIndex('id', 'title');
+    $sql = $this->alter('pages')->addUniqueIndex('id', 'title');
     $this->assertEquals($exp, $sql->make(), 'Создание уникального индекса');
 
     $exp0 = 'ALTER TABLE `pages` MODIFY COLUMN `id` INT UNSIGNED';
     $exp1 = 'ALTER TABLE `pages` MODIFY COLUMN `id` INT UNSIGNED FIRST';
     $exp2 = 'ALTER TABLE `pages` MODIFY COLUMN `id` INT UNSIGNED AFTER `title`';
-    $sql0 = DB::Alter('pages')->modifyColumn('id', 'INT UNSIGNED');
-    $sql1 = DB::Alter('pages')->modifyColumn('id', 'INT UNSIGNED', true);
-    $sql2 = DB::Alter('pages')->modifyColumn('id', 'INT UNSIGNED', 'title');
+    $sql0 = $this->alter('pages')->modifyColumn('id', 'INT UNSIGNED');
+    $sql1 = $this->alter('pages')->modifyColumn('id', 'INT UNSIGNED', true);
+    $sql2 = $this->alter('pages')->modifyColumn('id', 'INT UNSIGNED', 'title');
     $this->assertEquals($exp0, $sql0->make(), 'Изменение столбца id');
     $this->assertEquals($exp1, $sql1->make(), 'Изменение столбца id, перемещение в начало');
     $this->assertEquals($exp2, $sql2->make(), 'Изменение столбца id, перемещение после title');
 
     $exp = 'ALTER TABLE `pages` DROP COLUMN `title`';
-    $sql = DB::Alter('pages')->dropColumn('title');
+    $sql = $this->alter('pages')->dropColumn('title');
     $this->assertEquals($exp, $sql->make(), 'Сброс столбца title');
 
     $exp = 'ALTER TABLE `pages` DROP INDEX `i_title`';
-    $sql = DB::Alter('pages')->dropIndex('i_title');
+    $sql = $this->alter('pages')->dropIndex('i_title');
     $this->assertEquals($exp, $sql->make(), 'Сброс индекса i_title');
 
     $exp = 'ALTER TABLE `pages` DROP PRIMARY KEY';
-    $sql = DB::Alter('pages')->dropPrimaryKey();
+    $sql = $this->alter('pages')->dropPrimaryKey();
     $this->assertEquals($exp, $sql->make(), 'Сброс первичного ключа');
 
     $exp = 'ALTER TABLE `pages` ORDER BY title DESC';
-    $sql = DB::Alter('pages')->setOrderBy('title DESC');
+    $sql = $this->alter('pages')->setOrderBy('title DESC');
     $this->assertEquals($exp, $sql->make(), 'Установка порядка сортировки по умолчанию');
+  }
+
+  protected function select($table)
+  {
+    return new DB\Query\Select($table);
+  }
+
+  protected function update($table)
+  {
+    return new DB\Query\Update($table);
+  }
+
+  protected function delete($table)
+  {
+    return new DB\Query\Delete($table);
+  }
+
+  protected function drop($table)
+  {
+    return new DB\Query\Drop($table);
+  }
+
+  protected function truncate($table)
+  {
+    return new DB\Query\Truncate($table);
+  }
+
+  protected function insert($table)
+  {
+    return new DB\Query\Insert($table);
+  }
+
+  protected function create($table)
+  {
+    return new DB\Query\Create($table);
+  }
+
+  protected function alter($table)
+  {
+    return new DB\Query\Alter($table);
   }
 }

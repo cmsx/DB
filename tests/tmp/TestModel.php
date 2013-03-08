@@ -2,10 +2,17 @@
 
 use CMSx\DB\Item;
 
-/** Этот класс был создан автоматически 26.01.2013 10:57 по схеме Schema2 */
+/** Этот класс был создан автоматически 08.03.2013 19:32 по схеме Schema2 */
 class TestModel extends Item
 {
-  protected static $default_table = 'test_me';
+  public function getTable() {
+    return 'test_me';
+  }
+
+  /** @return \CMSx\DB */
+  public function getManager() {
+    //TODO: Указать менеджер БД
+  }
 
   public function getId()
   {

@@ -14,7 +14,7 @@ class Insert extends Query
       return null;
     }
     $columns   = array_keys($this->values['insert']);
-    $this->sql = 'INSERT INTO ' . Builder::QuoteTable($this->table, $this->prefix)
+    $this->sql = 'INSERT INTO ' . Builder::QuoteTable($this->table, $this->getPrefix())
       . ' (' . Builder::BuildNames($columns) . ')'
       . ' VALUES (' . Builder::BuildValues($this->values['insert'], $bind_values, 'insert') . ')';
 
@@ -26,7 +26,7 @@ class Insert extends Query
   {
     $res = parent::execute($values);
     if ($res) {
-      return DB::GetLastInsertID();
+      return $this->getConnection()->lastInsertId();
     } else {
       return false;
     }

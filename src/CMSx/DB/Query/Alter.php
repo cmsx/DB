@@ -14,7 +14,7 @@ class Alter extends Query
 
   protected function build($action, $definition = null)
   {
-    $this->sql = 'ALTER TABLE ' . Builder::QuoteTable($this->table, $this->prefix) . ' '
+    $this->sql = 'ALTER TABLE ' . Builder::QuoteTable($this->table, $this->getPrefix()) . ' '
       . strtoupper($action) . ($definition ? ' ' . $definition : '');
 
     return $this;

@@ -12,7 +12,7 @@ class Update extends Query
     if (!isset($this->values['set'])) {
       return null;
     }
-    $this->sql = 'UPDATE ' . Builder::QuoteTable($this->table, $this->prefix)
+    $this->sql = 'UPDATE ' . Builder::QuoteTable($this->table, $this->getPrefix())
       . Builder::BuildSet($this->values['set'], $bind_values)
       . Builder::BuildWhere($this->where, $bind_values, $this->where_and)
       . Builder::BuildLimit($this->limit, $this->offset);

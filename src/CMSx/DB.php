@@ -2,7 +2,7 @@
 
 namespace CMSx;
 
-use CMSx\DB\Query;
+use CMSx\DB\Exception;
 use CMSx\DB\Query\Alter;
 use CMSx\DB\Query\Create;
 use CMSx\DB\Query\Delete;
@@ -11,29 +11,23 @@ use CMSx\DB\Query\Insert;
 use CMSx\DB\Query\Select;
 use CMSx\DB\Query\Truncate;
 use CMSx\DB\Query\Update;
-use CMSx\DB\Exception;
-use CMSx\DB\Connection;
 
 class DB
 {
   /** Не настроено соединение с БД */
   const ERROR_NO_CONNECTION_AVAILABLE = 10;
-  /** Невозможно подключиться к БД */
-  const ERROR_CANT_CONNECT = 11;
   /** В объекте нет соединения */
   const ERROR_NO_CONNECTION = 15;
-  /** Соединение не является объектом PDO */
-  const ERROR_BAD_CONNECTION = 16;
+  /** Ошибка при выполнении запросе */
+  const ERROR_QUERY = 40;
+  /** Ошибка при попытке создания полнотекстового индекса на таблице не MyISAM */
+  const ERROR_FULLTEXT_ONLY_MYISAM = 31;
+
   /** Ошибка при select`е по паре ключ-значение, нет такого ключа */
   const ERROR_SELECT_BY_PAIR_NO_KEY = 20;
   /** Ошибка при select`е по паре ключ-значение, нет такого значения */
   const ERROR_SELECT_BY_PAIR_NO_VALUE = 21;
-  /** Ошибка при попытке создания полнотекстового индекса на таблице не MyISAM */
-  const ERROR_FULLTEXT_ONLY_MYISAM = 31;
-  /** Ошибка при выполнении запросе */
-  const ERROR_QUERY = 40;
-  /** Для объекта Item не указана таблица */
-  const ERROR_ITEM_NO_TABLE = 50;
+
   /** Ошибка при загрузке объекта Item не указан ID */
   const ERROR_ITEM_NO_ID = 51;
   /** Ошибка при загрузке объекта Item по ID */
@@ -53,167 +47,193 @@ class DB
   /** Обнуление в таблице внешних ключей */
   const FOREIGN_SET_NULL = 3;
 
-  protected static $prefix;
+  /** Префикс используемый в запросах */
+  protected $prefix;
   /** @var \PDO */
-  protected static $connection;
+  protected $connection;
+  /** Выполненные запросы */
+  protected $queries = array();
 
   protected static $errors_arr = array(
     self::ERROR_NO_CONNECTION_AVAILABLE => 'Не настроено соединение с БД',
-    self::ERROR_CANT_CONNECT            => 'Невозможно подключиться к БД',
     self::ERROR_NO_CONNECTION           => 'Для запросов не указано соединения',
-    self::ERROR_BAD_CONNECTION          => 'Соединение не является объектом PDO',
     self::ERROR_SELECT_BY_PAIR_NO_KEY   => 'В запросе нет ключа "%s"',
     self::ERROR_SELECT_BY_PAIR_NO_VALUE => 'В запросе нет значений "%s"',
     self::ERROR_FULLTEXT_ONLY_MYISAM    => 'Попытка назначения полнотекстового индекса таблице "%s" с типом "%s"',
     self::ERROR_QUERY                   => 'Ошибка выполнения "%s": %s',
-    self::ERROR_ITEM_NO_TABLE           => '%s->%s(%s): для объекта не указана таблица',
     self::ERROR_ITEM_NO_ID              => '%s->%s(%s): для объекта не указан ID',
     self::ERROR_ITEM_LOAD_NOT_FOUND     => '%s->%s(%s): объект не найден',
   );
 
-  /** Префикс по умолчанию для всех запросов */
-  public static function SetPrefix($prefix)
+  function __construct(\PDO $connection = null, $prefix = null)
   {
-    self::$prefix = $prefix;
+    if ($connection) {
+      $this->setConnection($connection);
+    }
+
+    if ($prefix) {
+      $this->setPrefix($prefix);
+    }
   }
 
-  /** Префикс по умолчанию для всех запросов */
-  public static function GetPrefix()
+  public function setConnection(\PDO $connection)
   {
-    return self::$prefix;
+    $this->connection = $connection;
+
+    return $this;
   }
 
-  /**
-   * Выполнение запроса в БД.
-   *
-   * @param Query|string $sql
-   *
-   * @return \PDOStatement|bool
-   */
-  public static function Execute($sql, $values = null)
+  /** @return \PDO */
+  public function getConnection()
   {
-    if (!self::$connection) {
-      try {
-        self::$connection = Connection::Get();
-      } catch (\Exception $e) {
-        self::ThrowError(self::ERROR_NO_CONNECTION);
-      }
-    }
-    if (!(self::$connection instanceof \PDO)) {
-      self::ThrowError(self::ERROR_BAD_CONNECTION);
+    if (!$this->connection) {
+      static::ThrowError(self::ERROR_NO_CONNECTION);
     }
 
-    if ($sql instanceof Query) {
-      $q = $sql->make();
-      if (is_null($values)) {
-        $values = $sql->getBindedValues();
-      }
-    } else {
-      $q = $sql;
-    }
-
-    $stmt = self::$connection->prepare($q);
-    $res  = $stmt->execute($values ? $values : null) ? $stmt : false;
-
-    if (!$res) {
-      $stmt_err = $stmt->errorInfo();
-      self::ThrowError(
-        self::ERROR_QUERY,
-        $sql instanceof Query ? $sql->make(true) : $sql,
-        '[' . $stmt_err[1] . '] ' . $stmt_err[2]
-      );
-    }
-
-    return $res;
+    return $this->connection;
   }
 
-  /** Последний добавленный ID */
-  public static function GetLastInsertID()
+  /** Префикс для автоматически собираемых запросов */
+  public function setPrefix($prefix)
   {
-    return self::$connection->lastInsertId();
+    $this->prefix = $prefix;
+
+    return $this;
+  }
+
+  /** Префикс для автоматически собираемых запросов */
+  public function getPrefix()
+  {
+    return $this->prefix;
+  }
+
+  /** Массив выполненных запросов или false */
+  public function getQueries()
+  {
+    return $this->getQueriesCount()
+      ? $this->queries
+      : false;
+  }
+
+  /** Количество выполненных запросов */
+  public function getQueriesCount()
+  {
+    return count($this->queries);
   }
 
   /**
-   * Подключение по умолчанию для всех запросов
-   * @static
+   * Выполнение запроса. $values - параметры для bind`инга в запрос
    *
-   * @param \PDO $connection
+   * @return \PDOStatement
    */
-  public static function SetConnection(\PDO $connection)
+  public function query($sql, $values = null)
   {
-    self::$connection = $connection;
+    if (!$this->connection) {
+      static::ThrowError(self::ERROR_NO_CONNECTION);
+    }
+
+    $this->queries[] = $sql;
+
+    $stmt = static::Execute($this->connection, $sql, $values);
+
+    return $stmt;
+  }
+
+  public function getLastInsertId()
+  {
+    return $this->getConnection()->lastInsertId();
   }
 
   /** @return Select */
-  public static function Select($table)
+  public function select($table)
   {
-    return self::Configure(new Select($table));
+    $s = new Select($table);
+    $s->setManager($this);
+
+    return $s;
   }
 
   /** @return Update */
-  public static function Update($table)
+  public function update($table)
   {
-    return self::Configure(new Update($table));
+    $s = new Update($table);
+    $s->setManager($this);
+
+    return $s;
   }
 
   /** @return Delete */
-  public static function Delete($table)
+  public function delete($table)
   {
-    return self::Configure(new Delete($table));
+    $s = new Delete($table);
+    $s->setManager($this);
+
+    return $s;
   }
 
   /** @return Create */
-  public static function Create($table)
+  public function create($table)
   {
-    return self::Configure(new Create($table));
+    $s = new Create($table);
+    $s->setManager($this);
+
+    return $s;
   }
 
   /** @return Truncate */
-  public static function Truncate($table)
+  public function truncate($table)
   {
-    return self::Configure(new Truncate($table));
+    $s = new Truncate($table);
+    $s->setManager($this);
+
+    return $s;
   }
 
   /** @return Insert */
-  public static function Insert($table)
+  public function insert($table)
   {
-    return self::Configure(new Insert($table));
+    $s = new Insert($table);
+    $s->setManager($this);
+
+    return $s;
   }
 
   /** @return Drop */
-  public static function Drop($table)
+  public function drop($table)
   {
-    return self::Configure(new Drop($table));
+    $s = new Drop($table);
+    $s->setManager($this);
+
+    return $s;
   }
 
   /** @return Alter */
-  public static function Alter($table)
+  public function alter($table)
   {
-    return self::Configure(new Alter($table));
+    $s = new Alter($table);
+    $s->setManager($this);
+
+    return $s;
   }
 
-  /** Установка подключения и префикса по умолчанию в запрос */
-  protected function Configure(Query $query)
+  /** Создание объекта PDO */
+  public static function PDO($host, $user, $pass, $dbname, $charset = 'UTF8')
   {
-    if (self::$prefix) {
-      $query->setPrefix(self::$prefix);
-    }
-    if (self::$connection) {
-      $query->setConnection(self::$connection);
+    try {
+      $conn = new \PDO('mysql:host=' . $host . ';dbname=' . $dbname, $user, $pass);
+      if ($charset) {
+        if (!is_null($charset)) {
+          $conn->query('SET NAMES ' . $charset);
+        }
+      }
+    } catch (\PDOException $e) {
+      self::ThrowError(self::ERROR_NO_CONNECTION_AVAILABLE);
     }
 
-    return $query;
+    return $conn;
   }
 
-  /**
-   * Текст ошибки по коду. Если переданы аргументы, они будут подставлены в sprintf
-   *
-   * @static
-   *
-   * @param              $code
-   * @param array|string $args
-   * @param string       $_
-   */
+  /** Текст ошибки по коду. Если переданы аргументы, они будут подставлены в sprintf */
   public static function GetMessage($code, $args = null, $_ = null)
   {
     if (!isset(static::$errors_arr[$code])) {
@@ -234,14 +254,30 @@ class DB
     return $msg;
   }
 
-  /**
-   * Выброс ошибки по коду
-   */
+  /** Выброс ошибки по коду */
   public static function ThrowError($code, $args = null, $_ = null)
   {
     $args = func_get_args();
     array_shift($args);
     $msg = static::GetMessage($code, $args);
     throw new Exception($msg, $code);
+  }
+
+  /** Выполнение запроса */
+  public static function Execute(\PDO $connection, $sql, $values = null)
+  {
+    $stmt = $connection->prepare($sql);
+    $res = $stmt->execute($values);
+
+    if (!$res) {
+      $stmt_err = $stmt->errorInfo();
+      self::ThrowError(
+        self::ERROR_QUERY,
+        $sql, //$sql instanceof Query ? $sql->make(true) : $sql,
+        '[' . $stmt_err[1] . '] ' . $stmt_err[2]
+      );
+    }
+
+    return $stmt;
   }
 }

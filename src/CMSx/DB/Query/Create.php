@@ -48,7 +48,7 @@ class Create extends Query
         . ' ON UPDATE ' . Builder::BuildReferenceAction($arr['on_update']);
     }
 
-    $this->sql = 'CREATE TABLE ' . Builder::QuoteTable($this->table, $this->prefix) . " (\n  "
+    $this->sql = 'CREATE TABLE ' . Builder::QuoteTable($this->table, $this->getPrefix()) . " (\n  "
       . join(",\n  ", $parts) . "\n) ENGINE=" . $this->definition['type'];
 
     return $this->sql;
@@ -78,6 +78,7 @@ class Create extends Query
     return isset($this->definition[$component]) ? $this->definition[$component] : null;
   }
 
+  /** @return $this */
   public function add($column, $definition)
   {
     $this->definition['columns'][$column] = $definition;
@@ -85,6 +86,7 @@ class Create extends Query
     return $this;
   }
 
+  /** @return $this */
   public function addPrimaryKey($columns, $_ = null)
   {
     if (is_array($columns) || is_null($columns)) {
@@ -97,6 +99,7 @@ class Create extends Query
     return $this;
   }
 
+  /** @return $this */
   public function addIndex($columns, $_ = null)
   {
     if (is_array($columns) || is_null($columns)) {
@@ -109,6 +112,7 @@ class Create extends Query
     return $this;
   }
 
+  /** @return $this */
   public function addUniqueIndex($columns, $_ = null)
   {
     if (is_array($columns) || is_null($columns)) {
@@ -121,6 +125,7 @@ class Create extends Query
     return $this;
   }
 
+  /** @return $this */
   public function addFulltextIndex($columns, $_ = null)
   {
     if ($this->definition['type'] != DB::TYPE_MyISAM) {
@@ -152,6 +157,8 @@ class Create extends Query
    * @param int    $on_delete - Действие при удалении. По умолчанию = SQL::FOREIGN_RESTRICT.
    * Еще варианты: SQL::FOREIGN_CASCADE | SQL::FOREIGN_SET_NULL
    * @param int    $on_update - Действие при изменении. Если не задано - равно действию при удалении
+   *
+   * @return $this
    */
   public function addForeignKey($column, $f_table, $f_column, $on_delete = null, $on_update = null)
   {
@@ -183,7 +190,11 @@ class Create extends Query
 
   // ЧАСТО ИСПОЛЬЗУЕМЫЕ ТИПЫ ПОЛЕЙ
 
-  /** id - INT UNSIGNED AUTO_INCREMENT */
+  /**
+   * id - INT UNSIGNED AUTO_INCREMENT
+   * 
+   * @return $this
+   */
   public function addId($col = null)
   {
     return $this

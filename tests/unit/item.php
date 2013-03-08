@@ -4,12 +4,39 @@ require_once __DIR__ . '/../init.php';
 
 use CMSx\DB;
 use CMSx\DB\Item;
-use CMSx\DB\Connection;
 use CMSx\DB\Exception;
+
+/** Настройки для подключения к БД */
+class MyConfig
+{
+  public static function GetDB()
+  {
+    return new DB(self::GetPDO());
+  }
+
+  public static function GetPDO()
+  {
+    return DB::PDO('localhost', 'test', 'test', 'test');
+  }
+}
 
 class MyItem extends Item
 {
-  static public $default_table = 'test';
+  /**
+   * Менеджер подключения к БД
+   *
+   * @return DB
+   */
+  public function getManager()
+  {
+    return MyConfig::GetDB();
+  }
+
+  /** Функция возвращает имя таблицы в БД */
+  public function getTable()
+  {
+    return 'test';
+  }
 
   protected function beforeDelete()
   {
@@ -36,10 +63,10 @@ class MyItem extends Item
 
 class ItemTest extends PHPUnit_Framework_TestCase
 {
+  protected static $table;
+
   function testLoad()
   {
-    $this->needConnection();
-
     $i = new MyItem(1);
     $this->assertEquals('One', $i->get('name'), 'Первый элемент');
 
@@ -66,8 +93,6 @@ class ItemTest extends PHPUnit_Framework_TestCase
 
   function testFind()
   {
-    $this->needConnection();
-
     $arr = MyItem::Find();
     $this->assertTrue(is_array($arr), 'Получен набор элементов #1');
     $this->assertEquals(2, count($arr), 'В наборе 2 элемента');
@@ -89,8 +114,6 @@ class ItemTest extends PHPUnit_Framework_TestCase
 
   function testFindOne()
   {
-    $this->needConnection();
-
     $i = MyItem::FindOne(array('id' => 1, 'is_active' => true));
     $this->assertEquals('MyItem', get_class($i), 'Объект загрузился');
 
@@ -103,25 +126,12 @@ class ItemTest extends PHPUnit_Framework_TestCase
 
   function testCount()
   {
-    $this->needConnection();
-
     $this->assertEquals(2, MyItem::Count(), 'Подсчет всего строк');
     $this->assertEquals(1, MyItem::Count(array('is_active' => 1)), 'Одна включенная запись');
   }
 
   function testSave()
   {
-    $this->needConnection();
-
-    $i = new Item;
-    try {
-      $i->save();
-      $this->fail('Для элемента не указана таблица');
-    } catch (Exception $e) {
-      $this->assertEquals(DB::ERROR_ITEM_NO_TABLE, $e->getCode(), 'Исключение "таблица не указана"');
-      $this->assertNotEmpty($e->getMessage(), 'Текст ошибки "таблица не указана" есть');
-    }
-
     $this->assertEquals(1, MyItem::Count(array('is_active' => 1)), 'Включенных элементов 1 шт.');
 
     $i = new MyItem(2);
@@ -144,19 +154,7 @@ class ItemTest extends PHPUnit_Framework_TestCase
 
   function testDelete()
   {
-    $this->needConnection();
-
-    $i = new Item;
-
-    try {
-      $i->delete();
-      $this->fail('Для элемента не указана таблица');
-    } catch (Exception $e) {
-      $this->assertEquals(DB::ERROR_ITEM_NO_TABLE, $e->getCode(), 'Исключение "таблица не указана"');
-      $this->assertNotEmpty($e->getMessage(), 'Текст ошибки "таблица не указана" есть');
-    }
-
-    $i->setTable(MyItem::$default_table);
+    $i = new MyItem;
 
     try {
       $i->delete();
@@ -187,7 +185,7 @@ class ItemTest extends PHPUnit_Framework_TestCase
    */
   function testGetAsDate($date, $format, $exp, $msg)
   {
-    $i = new Item;
+    $i = new MyItem;
     $i->set('date', $date);
     $this->assertEquals($exp, $i->getAsDate('date', $format), $msg);
   }
@@ -208,7 +206,7 @@ class ItemTest extends PHPUnit_Framework_TestCase
    */
   function testSetAsDate($value, $exp, $msg)
   {
-    $i = new Item;
+    $i = new MyItem;
     $i->setAsDate('date', $value);
     $this->assertEquals($exp, $i->getAsDate('date'), $msg);
   }
@@ -224,7 +222,7 @@ class ItemTest extends PHPUnit_Framework_TestCase
 
   function testGetFloatFormatted()
   {
-    $i = new Item;
+    $i = new MyItem;
     $i->set('price', 123456.789);
 
     $exp = '123456.79';
@@ -236,61 +234,63 @@ class ItemTest extends PHPUnit_Framework_TestCase
 
   protected function setUp()
   {
-    if ($this->checkConnection()) {
-      $this->createTable();
-    }
-  }
-
-  protected function checkConnection()
-  {
     try {
-      Connection::Get();
-
-      return true;
-    } catch (Exception $e) {
-      return false;
+      $this->createTable();
+    } catch (\Exception $e) {
     }
   }
 
   protected function tearDown()
   {
-    if ($this->checkConnection()) {
+    try {
       $this->dropTable();
+    } catch (\Exception $e) {
     }
+  }
+
+  public static function setUpBeforeClass()
+  {
+    $i = new MyItem();
+    static::$table = $i->getTable();
   }
 
   protected function createTable()
   {
     $this->dropTable();
 
-    DB::Create(MyItem::$default_table)
+    $this->getDB()->create(static::$table)
       ->addId()
       ->addBool('is_active')
       ->addChar('name')
       ->addTimeCreated()
       ->execute();
 
-    DB::Insert(MyItem::$default_table)
+    $this->getDB()->insert(static::$table)
       ->set('is_active', true)
       ->set('name', 'One')
       ->execute();
 
-    DB::Insert(MyItem::$default_table)
+    $this->getDB()->insert(static::$table)
       ->set('name', 'Two')
       ->execute();
   }
 
   protected function dropTable()
   {
-    DB::Drop(MyItem::$default_table)->execute();
+    $this->getDB()->drop(static::$table)->execute();
   }
 
-  protected function needConnection()
+  function getDB()
+  {
+    return new DB($this->getPDO());
+  }
+
+  function getPDO()
   {
     try {
-      Connection::Get();
-    } catch (Exception $e) {
-      $this->markTestSkipped('Не настроено подключение к БД: см. файл tests/config.php');
+      return MyConfig::GetPDO();
+    } catch (PDOException $e) {
+      $this->markTestSkipped('Нет подключения к БД');
     }
   }
 }

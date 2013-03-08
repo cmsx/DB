@@ -6,28 +6,52 @@ use CMSx\DB;
 use CMSx\DB\Query\Create;
 use CMSx\DB\Exception;
 
-/** При наследовании в init() должны быть заданы имя таблицы и запрос для её создания через DB::Create()... */
+/** При наследовании в init() должны быть заданы имя таблицы и запрос для её создания через DB\Query\Create */
 abstract class Schema
 {
-  /** Имя создаваемой таблицы без префикса */
-  protected $table;
   /** @var Create */
   protected $query;
   /** Название таблицы */
   protected $name;
 
-  function __construct()
+  /** @var DB */
+  protected $manager;
+
+  abstract public function getTable();
+  
+  function __construct(DB $manager)
   {
+    $this->setManager($manager);
+    $this->query = $this->getManager()->create($this->getTable());
+
     $this->init();
 
     if (empty($this->name)) {
-      $a   = explode('_', $this->table);
+      $a   = explode('_', $this->getTable());
       $res = array();
       foreach ($a as $str) {
         $res[] = ucfirst($str);
       }
       $this->name = join(' ', $res);
     }
+  }
+
+  /**
+   * @param \CMSx\DB $manager
+   */
+  public function setManager($manager)
+  {
+    $this->manager = $manager;
+
+    return $this;
+  }
+
+  /**
+   * @return \CMSx\DB
+   */
+  public function getManager()
+  {
+    return $this->manager;
   }
 
   /** Формирует код класс модели, возвращает в виде string */
@@ -44,7 +68,8 @@ abstract class Schema
 
     $out .= "use CMSx\\DB\\Item;\n\n"
       . "/** Этот класс был создан автоматически " . date('d.m.Y H:i') . " по схеме " . get_called_class() . " */\n"
-      . "class {$name} extends Item\n{\n  protected static \$default_table = '{$this->table}';\n\n";
+      . "class {$name} extends Item\n{\n  public function getTable() {\n    return '{$this->getTable()}';\n  }\n\n"
+      . "  /** @return \\CMSx\\DB */\n  public function getManager() {\n    //TODO: Указать менеджер БД\n  }\n\n";
 
     foreach ($def as $col => $def) {
       $a = explode('_', $col);
@@ -76,7 +101,7 @@ abstract class Schema
   /** Создание таблицы */
   public function createTable($drop = false)
   {
-    if (is_null($this->table)) {
+    if (is_null($this->getTable())) {
       throw new Exception(get_called_class() . ': Имя таблицы не определено');
     }
     if (is_null($this->query)) {
@@ -84,7 +109,7 @@ abstract class Schema
     }
 
     if ($drop) {
-      DB::Drop($this->table)->execute();
+      $this->getManager()->drop($this->getTable())->execute();
     }
 
     return $this->query->execute();
@@ -93,10 +118,10 @@ abstract class Schema
   /** Обновление структуры таблицы */
   public function updateTable()
   {
-    $tbl = DB::GetPrefix() . $this->table;
+    $tbl = $this->getManager()->getPrefix() . $this->getTable();
 
     $cols     = $this->query->getDefinition('columns');
-    $tbl_info = DB::Execute("DESCRIBE $tbl")->fetchAll(\PDO::FETCH_ASSOC);
+    $tbl_info = $this->getManager()->query("DESCRIBE $tbl")->fetchAll(\PDO::FETCH_ASSOC);
     $tbl_arr  = array();
     foreach ($tbl_info as $r) {
       $tbl_arr[$r['Field']] = null;
@@ -106,20 +131,20 @@ abstract class Schema
     $create = array_diff_key($cols, $tbl_arr);
 
     foreach ($drop as $col => $na) {
-      DB::Alter($this->table)
+      $this->getManager()->alter($this->getTable())
         ->dropColumn($col)
         ->execute();
     }
 
     foreach ($create as $col => $def) {
-      DB::Alter($this->table)
+      $this->getManager()->alter($this->getTable())
         ->addColumn($col, $def)
         ->execute();
     }
 
     $prev = null;
     foreach ($cols as $col => $def) {
-      DB::Alter($this->table)
+      $this->getManager()->alter($this->getTable())
         ->modifyColumn($col, $def, $prev)
         ->execute();
       $prev = $col;
@@ -132,12 +157,6 @@ abstract class Schema
     return true;
   }
 
-  /** Имя таблицы в БД */
-  public function getTable()
-  {
-    return $this->table;
-  }
-
   /** Название таблицы */
   public function getName()
   {
@@ -147,7 +166,7 @@ abstract class Schema
   /**
    * Запрос для создания таблицы
    *
-   * @return Query\Create
+   * @return Create
    */
   public function getQuery()
   {

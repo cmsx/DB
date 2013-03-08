@@ -6,11 +6,8 @@ use CMSx\DB;
 use CMSx\Container;
 use CMSx\DB\Exception;
 
-class Item extends Container
+abstract class Item extends Container
 {
-  protected static $default_table;
-  protected $table;
-
   function __construct($id = null)
   {
     $this->init();
@@ -21,15 +18,21 @@ class Item extends Container
   }
 
   /**
+   * Менеджер подключения к БД
+   *
+   * @return DB
+   */
+  abstract function getManager();
+  
+  /** Функция возвращает имя таблицы в БД */
+  abstract function getTable();
+
+  /**
    * Загрузка объекта из БД по ID
    * @throws Exception Если объект не найден
    */
   public function load($id = null)
   {
-    if (!$table = $this->getTable()) {
-      DB::ThrowError(DB::ERROR_ITEM_NO_TABLE, get_called_class(), 'load', $id);
-    }
-
     if (is_null($id)) {
       $id = $this->get('id');
     }
@@ -38,7 +41,7 @@ class Item extends Container
       DB::ThrowError(DB::ERROR_ITEM_NO_ID, get_called_class(), 'load', $id);
     }
 
-    if ($res = DB::Select($table)->where($id)->fetchOne()) {
+    if ($res = $this->getManager()->select($this->getTable())->where($id)->fetchOne()) {
       $this->vars = $res;
       return $this;
     }
@@ -53,19 +56,15 @@ class Item extends Container
    */
   public function save()
   {
-    if (!$table = $this->getTable()) {
-      DB::ThrowError(DB::ERROR_ITEM_NO_TABLE, get_called_class(), 'save', null);
-    }
-
     if ($id = $this->get('id')) {
       $this->beforeSave(false);
-      DB::Update($table)
+      $this->getManager()->update($this->getTable())
         ->setArray($this->vars)
         ->where($id)
         ->execute();
     } else {
       $this->beforeSave(true);
-      $id = DB::Insert($table)
+      $id = $this->getManager()->insert($this->getTable())
         ->setArray($this->vars)
         ->execute();
 
@@ -82,16 +81,12 @@ class Item extends Container
    */
   public function delete($clean = true)
   {
-    if (!$table = $this->getTable()) {
-      DB::ThrowError(DB::ERROR_ITEM_NO_TABLE, get_called_class(), 'delete', var_export($clean, true));
-    }
-
     if (!$id = $this->get('id')) {
       DB::ThrowError(DB::ERROR_ITEM_NO_ID, get_called_class(), 'delete', var_export($clean, true));
     }
 
     $this->beforeDelete($id);
-    DB::Delete($table)->where($id)->execute();
+    $this->getManager()->delete($this->getTable())->where($id)->execute();
     $this->afterDelete($id);
 
     if ($clean) {
@@ -99,20 +94,6 @@ class Item extends Container
     }
 
     return $this;
-  }
-
-  /** Таблица в БД */
-  public function setTable($table)
-  {
-    $this->table = $table;
-
-    return $this;
-  }
-
-  /** Таблица в БД */
-  public function getTable()
-  {
-    return $this->table ? : static::$default_table;
   }
 
   /** Приведение поля с датой в нужный формат */
@@ -157,7 +138,7 @@ class Item extends Container
   {
     $c = get_called_class();
 
-    return DB::Select(static::$default_table)
+    return static::getManager()->select(static::getTable())
       ->where($where)
       ->orderby($orderby)
       ->page($page, $onpage)
@@ -173,7 +154,7 @@ class Item extends Container
   {
     $c = get_called_class();
 
-    return DB::Select(static::$default_table)
+    return static::getManager()->select(static::getTable())
       ->where($where)
       ->orderby($orderby)
       ->limit(1)
@@ -183,7 +164,7 @@ class Item extends Container
   /** Подсчет количества элементов в таблице */
   public static function Count($where = null)
   {
-    return (int)DB::Select(static::$default_table)
+    return (int) static::getManager()->select(static::getTable())
       ->columns('count(*) as `total`')
       ->where($where)
       ->fetchOne('total');

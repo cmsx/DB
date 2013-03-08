@@ -11,6 +11,8 @@ abstract class Query
   protected $connection;
   /** @var \PDOStatement */
   protected $statement;
+  /** @var DB */
+  protected $manager;
 
   protected $sql;
   protected $join;
@@ -29,9 +31,17 @@ abstract class Query
   protected $having_and = true;
   protected $last_insert_id;
 
-  function __construct($table)
+  function __construct($table, \PDO $connection = null, $prefix = null)
   {
     $this->table = $table;
+
+    if (!is_null($connection)) {
+      $this->setConnection($connection);
+    }
+
+    if (!is_null($prefix)) {
+      $this->setPrefix($prefix);
+    }
   }
 
   function __toString()
@@ -57,8 +67,14 @@ abstract class Query
     if (is_array($values)) {
       $this->bindArray($values);
     }
+
     $this->make();
-    $this->statement = DB::Execute($this);
+
+    if ($this->getManager()) {
+      $this->statement = $this->getManager()->query($this);
+    } else {
+      $this->statement = DB::Execute($this->getConnection(), $this);
+    }
 
     return $this->statement;
   }
@@ -111,7 +127,36 @@ abstract class Query
     return count($binded_values) ? $binded_values : false;
   }
 
-  /** Префикс для всех таблиц в запросах */
+  public function setConnection(\PDO $connection)
+  {
+    $this->connection = $connection;
+
+    return $this;
+  }
+
+  /** @return \PDO */
+  public function getConnection()
+  {
+    if ($this->getManager()) {
+      return $this->getManager()->getConnection();
+    }
+
+    return $this->connection;
+  }
+
+  public function setManager(DB $manager)
+  {
+    $this->manager = $manager;
+
+    return $this;
+  }
+
+  /** @return \CMSx\DB */
+  public function getManager()
+  {
+    return $this->manager;
+  }
+
   public function setPrefix($prefix)
   {
     $this->prefix = $prefix;
@@ -119,12 +164,13 @@ abstract class Query
     return $this;
   }
 
-  /** Передача в объект соединения PDO */
-  public function setConnection(\PDO $conn)
+  public function getPrefix()
   {
-    $this->connection = $conn;
+    if (!$this->prefix && $this->getManager()) {
+      return $this->getManager()->getPrefix();
+    }
 
-    return $this;
+    return $this->prefix;
   }
 
   /** Обработка условия where */

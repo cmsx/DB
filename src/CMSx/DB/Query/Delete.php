@@ -9,7 +9,7 @@ class Delete extends Query
 {
   public function make($bind_values = false)
   {
-    $this->sql = 'DELETE FROM ' . Builder::QuoteTable($this->table, $this->prefix)
+    $this->sql = 'DELETE FROM ' . Builder::QuoteTable($this->table, $this->getPrefix())
       . Builder::BuildWhere($this->where, $bind_values, $this->where_and)
       . Builder::BuildLimit($this->limit, $this->offset);
     if ($bind_values) {

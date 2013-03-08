@@ -9,7 +9,7 @@ class Truncate extends Query
 {
   public function make($bind_values = false)
   {
-    $this->sql = 'TRUNCATE TABLE ' . Builder::QuoteTable($this->table, $this->prefix);
+    $this->sql = 'TRUNCATE TABLE ' . Builder::QuoteTable($this->table, $this->getPrefix());
 
     return $this->sql;
   }

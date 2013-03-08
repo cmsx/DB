@@ -13,7 +13,7 @@ class Drop extends Query
   {
     $this->sql = 'DROP TABLE '
       . ($this->if_exists ? 'IF EXISTS ' : '')
-      . Builder::QuoteTable($this->table, $this->prefix);
+      . Builder::QuoteTable($this->table, $this->getPrefix());
 
     return $this->sql;
   }
