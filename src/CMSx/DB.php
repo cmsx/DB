@@ -2,6 +2,7 @@
 
 namespace CMSx;
 
+use CMSx\DB\Query;
 use CMSx\DB\Exception;
 use CMSx\DB\Query\Alter;
 use CMSx\DB\Query\Create;
@@ -266,14 +267,22 @@ class DB
   /** Выполнение запроса */
   public static function Execute(\PDO $connection, $sql, $values = null)
   {
-    $stmt = $connection->prepare($sql);
+    $q = $sql;
+    if ($sql instanceof Query) {
+      $q = $sql->make();
+      if (is_null($values)) {
+        $values = $sql->getBindedValues() ?: null;
+      }
+    }
+
+    $stmt = $connection->prepare($q);
     $res = $stmt->execute($values);
 
     if (!$res) {
       $stmt_err = $stmt->errorInfo();
       self::ThrowError(
         self::ERROR_QUERY,
-        $sql, //$sql instanceof Query ? $sql->make(true) : $sql,
+        $sql,
         '[' . $stmt_err[1] . '] ' . $stmt_err[2]
       );
     }

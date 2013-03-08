@@ -51,8 +51,8 @@ class DBTest extends PHPUnit_Framework_TestCase
 
     $db->alter($this->table)->addColumn('surname', 'VARCHAR(250)')->execute();
 
-    $r = $db->select($this->table)->fetchOne();
-    $this->assertEquals('Hello', $r['name'], 'ID');
+    $r = $db->select($this->table)->where(array('id' => 2))->fetchOne();
+    $this->assertEquals('World', $r['name'], 'Имя');
     $this->assertEquals(3, count($r), '3 поля');
 
     $db->delete($this->table)->where(1)->execute();
