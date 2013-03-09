@@ -43,7 +43,7 @@ class Create extends Query
 
     foreach ($this->definition['foreign_key'] as $name => $arr) {
       $parts[] = 'FOREIGN KEY `' . $name . '` (`' . $arr['column'] . '`)'
-        . ' REFERENCES `' . $this->prefix . $arr['f_table'] . '`(`' . $arr['f_column'] . '`)'
+        . ' REFERENCES `' . $this->getPrefix() . $arr['f_table'] . '`(`' . $arr['f_column'] . '`)'
         . ' ON DELETE ' . Builder::BuildReferenceAction($arr['on_delete'])
         . ' ON UPDATE ' . Builder::BuildReferenceAction($arr['on_update']);
     }

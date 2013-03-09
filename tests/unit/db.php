@@ -39,6 +39,8 @@ class DBTest extends PHPUnit_Framework_TestCase
     $c = $db->create($this->table);
     $c->addId();
     $c->addChar('name');
+    $c->addForeignId('parent_id');
+    $c->addForeignKey('parent_id', $this->table, 'id');
     $c->execute();
 
     $db->insert($this->table)
@@ -53,7 +55,7 @@ class DBTest extends PHPUnit_Framework_TestCase
 
     $r = $db->select($this->table)->where(array('id' => 2))->fetchOne();
     $this->assertEquals('World', $r['name'], 'Имя');
-    $this->assertEquals(3, count($r), '3 поля');
+    $this->assertEquals(4, count($r), '4 поля');
 
     $db->delete($this->table)->where(1)->execute();
 
