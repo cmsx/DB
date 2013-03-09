@@ -196,7 +196,7 @@ abstract class Builder
 
   public static function QuoteKeyValue($key, $value)
   {
-    return '`' . $key . '`=' . self::QuoteValue($value);
+    return static::QuoteKey($key) . '=' . self::QuoteValue($value);
   }
 
   protected static function HasSpecChar($str)

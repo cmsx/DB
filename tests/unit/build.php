@@ -45,8 +45,8 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($exp, $sql->make(), 'Выборка по строковым условиям');
     $this->assertFalse($sql->getBindedValues(), 'Ничего не биндилось');
 
-    $sql = $this->select('pages')->where(array('id' => 12, 'is_active' => 1));
-    $exp = 'SELECT * FROM `pages` WHERE `id`=12 AND `is_active`=1';
+    $sql = $this->select('pages p')->where(array('p.id' => 12, 'is_active' => 1));
+    $exp = 'SELECT * FROM `pages` `p` WHERE p.id=12 AND `is_active`=1';
     $this->assertEquals($exp, $sql->make(true), 'Значения подставляются в запрос');
     $this->assertEquals($exp, (string)$sql, 'Преобразование объекта в строку');
 
