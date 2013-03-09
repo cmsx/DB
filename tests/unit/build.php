@@ -46,9 +46,11 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $this->assertFalse($sql->getBindedValues(), 'Ничего не биндилось');
 
     $sql = $this->select('pages p')->where(array('p.id' => 12, 'is_active' => 1));
-    $exp = 'SELECT * FROM `pages` `p` WHERE p.id=12 AND `is_active`=1';
-    $this->assertEquals($exp, $sql->make(true), 'Значения подставляются в запрос');
-    $this->assertEquals($exp, (string)$sql, 'Преобразование объекта в строку');
+    $exp1 = 'SELECT * FROM `pages` `p` WHERE p.id=12 AND `is_active`=1';
+    $exp2 = 'SELECT * FROM `pages` `p` WHERE p.id=:where_p_id AND `is_active`=:where_is_active';
+    $this->assertEquals($exp2, $sql->make(), 'При биндинге ключи с точкой заменяются на подчеркивание');
+    $this->assertEquals($exp1, $sql->make(true), 'Значения подставляются в запрос');
+    $this->assertEquals($exp1, (string)$sql, 'Преобразование объекта в строку');
 
     $sql = $this->select('pages')->where(12, true);
     $exp = 'SELECT * FROM `pages` WHERE `id`=12 AND `is_active`=1';
@@ -206,19 +208,19 @@ class BuildTest extends PHPUnit_Framework_TestCase
 
   function testInsert()
   {
-    $exp1    =
-      'INSERT INTO `pages` (`countme`, `foo`, `another`) VALUES (:insert_countme, :insert_foo, :insert_another)';
-    $exp2    = 'INSERT INTO `pages` (`countme`, `foo`, `another`) VALUES (12, "bar", NULL)';
+    $exp1    = 'INSERT INTO `pages` `p` (p.countme, `foo`, `another`) '
+      . 'VALUES (:insert_p_countme, :insert_foo, :insert_another)';
+    $exp2    = 'INSERT INTO `pages` `p` (p.countme, `foo`, `another`) VALUES (12, "bar", NULL)';
     $exp_arr = array(
-      ':insert_countme' => 12,
+      ':insert_p_countme' => 12,
       ':insert_foo'     => 'bar',
       ':insert_another' => null
     );
 
-    $sql = $this->insert('pages')
+    $sql = $this->insert('pages p')
       ->setArray(
       array(
-        'countme' => 12,
+        'p.countme' => 12,
         'foo'     => 'bar',
         'another' => null
       )
@@ -227,8 +229,8 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($exp2, $sql->make(true), 'Insert с подставленными значениями №1');
     $this->assertEquals($exp_arr, $sql->getBindedValues(), 'Значения пробиндились корректно №1');
 
-    $sql = $this->insert('pages')
-      ->set('countme', 12)
+    $sql = $this->insert('pages p')
+      ->set('p.countme', 12)
       ->set('foo', 'bar')
       ->set('another', null);
     $this->assertEquals($exp1, $sql->make(), 'Insert с плейсхолдерами №2');

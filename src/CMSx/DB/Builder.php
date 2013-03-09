@@ -111,7 +111,7 @@ abstract class Builder
           if ($bind) {
             $c[] = self::QuoteKeyValue($key, $val);
           } else {
-            $c[] = self::QuoteKey($key) . '=:' . $part . '_' . $key;
+            $c[] = self::QuoteKey($key) . '=' . self::BuildBinding($part, $key);
           }
         }
       }
@@ -144,10 +144,16 @@ abstract class Builder
       if ($bind) {
         $out[] = self::QuoteValue($val);
       } else {
-        $out[] = ':' . $part . '_' . $key;
+        $out[] = self::BuildBinding($part, $key);
       }
     }
     return join(', ', $out);
+  }
+
+  /** Построение именованного плейсхолдера по имени части и ключу */
+  public static function BuildBinding($part, $key)
+  {
+    return ':' . $part . '_' . preg_replace('/[^a-z0-9]/i', '_', $key);
   }
 
   /** Построение условий действия для внешних ключей: ON DELETE [CASCADE|RESTRICT|...] */

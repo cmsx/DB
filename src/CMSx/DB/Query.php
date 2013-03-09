@@ -119,7 +119,7 @@ abstract class Query
     if ($this->values) {
       foreach ($this->values as $part => $arr) {
         foreach ($arr as $key => $val) {
-          $binded_values[':' . $part . '_' . $key] = $val;
+          $binded_values[Builder::BuildBinding($part, $key)] = $val;
         }
       }
     }
