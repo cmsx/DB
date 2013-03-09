@@ -132,7 +132,7 @@ class Alter extends Query
   /** Переименование таблицы */
   public function rename($name)
   {
-    return $this->build('RENAME TO', Builder::QuoteKey($this->prefix . $name));
+    return $this->build('RENAME TO', Builder::QuoteKey($this->getPrefix() . $name));
   }
 
   /** Установка по какому столбцу таблица сортируется по умолчанию */

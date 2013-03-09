@@ -139,7 +139,7 @@ class Select extends Query
   public function join($table, $on, $type = null)
   {
     $this->join[$table] = array(
-      'table' => $this->prefix . $table,
+      'table' => $this->getPrefix() . $table,
       'on'    => $on,
       'type'  => $type,
     );
