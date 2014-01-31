@@ -18,6 +18,7 @@ class Schema1 extends Schema
   {
     $this->getQuery()
       ->addId()
+      ->addEnum('status', array('new', 'old'))
       ->addChar('name')
       ->addInt('price')
       ->addText();
@@ -40,6 +41,7 @@ class Schema2 extends Schema
     $this->name  = 'My Test';
     $this->getQuery()
       ->addId()
+      ->addEnum('status', array('new', 'old'))
       ->addPrice('price')
       ->addChar('title')
       ->addTimeCreated()
@@ -66,6 +68,14 @@ class SchemaTest extends PHPUnit_Framework_TestCase
         'Key'     => 'PRI',
         'Default' => null,
         'Extra'   => 'auto_increment',
+      ),
+      array(
+        'Field'   => 'status',
+        'Type'    => "enum('new','old')",
+        'Null'    => 'NO',
+        'Key'     => null,
+        'Default' => null,
+        'Extra'   => null,
       ),
       array(
         'Field'   => 'name',
@@ -116,6 +126,14 @@ class SchemaTest extends PHPUnit_Framework_TestCase
         'Extra'   => 'auto_increment',
       ),
       array(
+        'Field'   => 'status',
+        'Type'    => "enum('new','old')",
+        'Null'    => 'NO',
+        'Key'     => null,
+        'Default' => null,
+        'Extra'   => null,
+      ),
+      array(
         'Field'   => 'price',
         'Type'    => 'float(10,2) unsigned',
         'Null'    => 'YES',
@@ -163,6 +181,12 @@ class SchemaTest extends PHPUnit_Framework_TestCase
 
     require_once $file;
     $m = new TestModel;
+
+    $arr = TestModel::GetStatusArr();
+    $m->setStatus(TestModel::STATUS_OLD);
+    $this->assertEquals('new', TestModel::STATUS_NEW, 'Константы ENUM создались');
+    $this->assertEquals('Old', $arr[TestModel::STATUS_OLD], 'Массив имен констант сгенерился');
+    $this->assertEquals('Old', $m->getStatusName(), 'Название ENUM сгенерилось и есть функция доступа');
 
     $m->setTitle('One');
     $this->assertEquals('One', $m->getTitle(), 'Обычные значения');

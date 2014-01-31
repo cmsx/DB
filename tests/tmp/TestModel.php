@@ -2,9 +2,17 @@
 
 use CMSx\DB\Item;
 
-/** Этот класс был создан автоматически 08.03.2013 19:32 по схеме Schema2 */
+/** Этот класс был создан автоматически 01.02.2014 00:13 по схеме Schema2 */
 class TestModel extends Item
 {
+  const STATUS_NEW = 'new';
+  const STATUS_OLD = 'old';
+
+  protected static $status_arr = array(
+    self::STATUS_NEW => 'New',
+    self::STATUS_OLD => 'Old',
+  );
+
   public function getTable() {
     return 'test_me';
   }
@@ -22,6 +30,23 @@ class TestModel extends Item
   public function setId($id)
   {
     return $this->set('id', $id);
+  }
+
+  public function getStatus()
+  {
+    return $this->get('status');
+  }
+
+  public function getStatusName()
+  {
+    return isset(static::$status_arr[$this->getStatus()])
+      ? static::$status_arr[$this->getStatus()]
+      : false;
+  }
+
+  public function setStatus($status)
+  {
+    return $this->set('status', $status);
   }
 
   public function getPrice($decimals = null, $point = null, $thousands = null)
@@ -62,5 +87,10 @@ class TestModel extends Item
   public function setText($text)
   {
     return $this->set('text', $text);
+  }
+
+  public static function GetStatusArr()
+  {
+    return static::$status_arr;
   }
 }

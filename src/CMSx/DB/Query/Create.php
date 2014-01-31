@@ -11,6 +11,7 @@ class Create extends Query
   protected $definition = array(
     'type'        => DB::TYPE_MyISAM,
     'columns'     => array(),
+    'enum'        => array(),
     'index'       => array(),
     'unique'      => array(),
     'fulltext'    => array(),
@@ -272,6 +273,7 @@ class Create extends Query
   public function addEnum($col, $values, $null = null)
   {
     $q = 'ENUM (' . Builder::BuildValues($values) . ')' . ($null ? : ' NOT NULL');
+    $this->definition['enum'][$col] = $values;
 
     return $this->add($col, $q);
   }
