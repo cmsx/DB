@@ -153,7 +153,13 @@ abstract class Builder
   /** Построение именованного плейсхолдера по имени части и ключу */
   public static function BuildBinding($part, $key)
   {
-    return ':' . $part . '_' . preg_replace('/[^a-z0-9]/i', '_', $key);
+    return ':' . $part . '_' . static::CleanKeyName($key);
+  }
+
+  /** Очистка имени от лишних символов для биндинга */
+  public static function CleanKeyName($key)
+  {
+    return preg_replace('/[^a-z0-9]/i', '_', $key);
   }
 
   /** Построение условий действия для внешних ключей: ON DELETE [CASCADE|RESTRICT|...] */

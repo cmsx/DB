@@ -40,6 +40,31 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($exp, $sql->make(), 'Выборка по массиву условий');
     $this->assertEquals('thing', $vals[':where_some'], 'Успешно забиндилось');
 
+    $sql->where(array('one' => 'two'));
+    $exp  = 'SELECT * FROM `pages` WHERE `some`=:where_some AND `one`=:where_one';
+    $this->assertEquals($exp, $sql->make(), 'Второй where добавился к 1му');
+
+    $sql  = $this->select('pages')->whereEqual('id', 12)->whereEqual('name', 'Hello');
+    $vals = $sql->getBindedValues();
+    $exp  = 'SELECT * FROM `pages` WHERE `id`=:where_id AND `name`=:where_name';
+    $this->assertEquals($exp, $sql->make(), 'Метод whereEqual');
+    $this->assertEquals($vals[':where_id'], 12, 'IDшник забиндился');
+
+    $sql  = $this->select('pages p')->whereIn('p.id', array(12, 13, 14));
+    $vals = $sql->getBindedValues();
+    $exp  = 'SELECT * FROM `pages` `p` WHERE p.id IN (:where_p_id_1,:where_p_id_2,:where_p_id_3)';
+    $this->assertEquals($exp, $sql->make(), 'Метод whereIn');
+    $this->assertEquals($vals[':where_p_id_1'], 12, 'ID #1 забиндился');
+    $this->assertEquals($vals[':where_p_id_2'], 13, 'ID #2 забиндился');
+    $this->assertEquals($vals[':where_p_id_3'], 14, 'ID #3 забиндился');
+
+    $sql  = $this->select('pages p')->whereBetween('p.id', 12, 24);
+    $vals = $sql->getBindedValues();
+    $exp  = 'SELECT * FROM `pages` `p` WHERE p.id BETWEEN :where_p_id_from AND :where_p_id_to';
+    $this->assertEquals($exp, $sql->make(), 'Метод whereBetween');
+    $this->assertEquals($vals[':where_p_id_from'], 12, 'ID "от" забиндилось');
+    $this->assertEquals($vals[':where_p_id_to'], 24, 'ID "до" забиндилось');
+
     $sql = $this->select('pages')->where('`some`="thing"', '`another`>1');
     $exp = 'SELECT * FROM `pages` WHERE `some`="thing" AND `another`>1';
     $this->assertEquals($exp, $sql->make(), 'Выборка по строковым условиям');
@@ -184,8 +209,8 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $sql  = $this->delete('pages')
       ->where(12, '`created_at` > now()')
       ->limit(3);
-    $exp1 = 'DELETE FROM `pages` WHERE `created_at` > now() AND `id`=:where_id LIMIT 3';
-    $exp2 = 'DELETE FROM `pages` WHERE `created_at` > now() OR `id`=12 LIMIT 3';
+    $exp1 = 'DELETE FROM `pages` WHERE `id`=:where_id AND `created_at` > now() LIMIT 3';
+    $exp2 = 'DELETE FROM `pages` WHERE `id`=12 OR `created_at` > now() LIMIT 3';
     $this->assertEquals($exp1, $sql->make(), 'Delete с плейсхолдерами');
     $sql->setWhereJoinByAnd(false);
     $this->assertEquals($exp2, $sql->make(true), 'Delete с подставленными значениями');

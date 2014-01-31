@@ -50,12 +50,34 @@ class Update extends Query
   /** Условие WHERE. Массив или перечисление условий. */
   public function where($where, $_ = null)
   {
-    if (is_array($where) || is_null($where)) {
-      $this->where = $where;
-    } else {
-      $this->where = func_get_args();
-    }
-    $this->processWhere();
+    $this->processWhere(func_get_args());
+
+    return $this;
+  }
+
+  /** Условие WHERE IN. Не подставляет значения, только биндит! */
+  public function whereIn($column, array $array)
+  {
+    $this->processWhereIn($column, $array);
+
+    return $this;
+  }
+
+  /** Условие WHERE column = $value */
+  public function whereEqual($column, $value)
+  {
+    $this->processWhere(array($column => $value));
+
+    return $this;
+  }
+
+  /**
+   * Условие WHERE $column BETWEEN $from AND $to.
+   * Не подставляет значения, только биндит!
+   */
+  public function whereBetween($column, $from, $to)
+  {
+    $this->processWhereBetween($column, $from, $to);
 
     return $this;
   }

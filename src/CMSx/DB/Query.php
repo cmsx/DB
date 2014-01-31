@@ -174,25 +174,62 @@ abstract class Query
   }
 
   /** Обработка условия where */
-  protected function processWhere()
+  protected function processWhere($where)
   {
-    if ($this->where) {
-      foreach ($this->where as $key => $val) {
-        if (is_numeric($key)) {
-          if ($val === true || $val === false) {
-            unset($this->where[$key]);
-            $this->where['is_active'] = true;
-          } elseif (is_numeric($val)) {
-            unset($this->where[$key]);
-            $this->where['id'] = $val;
-          }
+    foreach ($where as $key => $val) {
+      if (is_numeric($key)) {
+        if ($val === true || $val === false) {
+          unset($this->where[$key]);
+          $this->where['is_active'] = true;
+        } elseif (is_array($val)) {
+          $this->processWhere($val);
+        } elseif (is_numeric($val)) {
+          unset($this->where[$key]);
+          $this->where['id'] = $val;
+        } elseif (!is_null($val)) {
+          $this->where[] = $val;
         }
+      } else {
+        $this->where[$key] = $val;
       }
     }
 
     if ($this->where) {
       $this->setValues($this->where, 'where');
     }
+  }
+
+  /** Обработка условия Where IN */
+  protected function processWhereIn($column, array $array)
+  {
+    $keys = array();
+    $i = 0;
+    foreach ($array as $val) {
+      $key    = Builder::CleanKeyName($column) . '_' . ++$i;
+      $keys[] = Builder::BuildBinding('where', $key);
+      $this->setValue($key, $val, 'where');
+    }
+
+    $this->processWhere(array(sprintf('%s IN (%s)', Builder::QuoteKey($column), join(',', $keys))));
+  }
+
+  /** Обработка условия WHERE Between */
+  protected function processWhereBetween($column, $from, $to)
+  {
+    $f = Builder::CleanKeyName($column) . '_from';
+    $this->setValue($f, $from, 'where');
+
+    $t = Builder::CleanKeyName($column) . '_to';
+    $this->setValue($t, $to, 'where');
+
+    $w = sprintf(
+      '%s BETWEEN %s AND %s',
+      Builder::QuoteKey($column),
+      Builder::BuildBinding('where', $f),
+      Builder::BuildBinding('where', $t)
+    );
+
+    $this->processWhere(array($w));
   }
 
   /**
