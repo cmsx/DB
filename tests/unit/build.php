@@ -58,6 +58,14 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($vals[':where_p_id_2'], 13, 'ID #2 забиндился');
     $this->assertEquals($vals[':where_p_id_3'], 14, 'ID #3 забиндился');
 
+    $sql = $this->select('pages')->where(array('id' => array(1, 2, 'three')));
+    $exp = 'SELECT * FROM `pages` WHERE `id` IN (:where_id_1,:where_id_2,:where_id_3)';
+    $vals = $sql->getBindedValues();
+    $this->assertEquals($exp, $sql->make(), 'Where IN из массива');
+    $this->assertEquals($vals[':where_id_1'], 1, 'ID #01 забиндился');
+    $this->assertEquals($vals[':where_id_2'], 2, 'ID #02 забиндился');
+    $this->assertEquals($vals[':where_id_3'], 'three', 'ID #03 забиндился');
+
     $sql  = $this->select('pages p')->whereBetween('p.id', 12, 24);
     $vals = $sql->getBindedValues();
     $exp  = 'SELECT * FROM `pages` `p` WHERE p.id BETWEEN :where_p_id_from AND :where_p_id_to';

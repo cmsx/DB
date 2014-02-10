@@ -190,7 +190,11 @@ abstract class Query
           $this->where[] = $val;
         }
       } else {
-        $this->where[$key] = $val;
+        if (is_array($val)) {
+          $this->processWhereIn($key, $val);
+        } else {
+          $this->where[$key] = $val;
+        }
       }
     }
 
