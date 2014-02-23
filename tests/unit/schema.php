@@ -45,6 +45,7 @@ class Schema2 extends Schema
       ->addPrice('price')
       ->addChar('title')
       ->addTimeCreated()
+      ->addTime('birthday', false)
       ->addText();
   }
 }
@@ -155,6 +156,14 @@ class SchemaTest extends PHPUnit_Framework_TestCase
         'Null'    => 'NO',
         'Key'     => '',
         'Default' => 'CURRENT_TIMESTAMP',
+        'Extra'   => '',
+      ),
+      array(
+        'Field'   => 'birthday',
+        'Type'    => 'datetime',
+        'Null'    => 'YES',
+        'Key'     => '',
+        'Default' => '0000-00-00 00:00:00',
         'Extra'   => '',
       ),
       array(

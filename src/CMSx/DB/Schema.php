@@ -99,7 +99,7 @@ abstract class Schema
         $get = "  public function get{$col_name}(\$decimals = null, \$point = null, \$thousands = null)\n  {\n    "
           . "return \$this->getAsFloat('{$col}', \$decimals, \$point, \$thousands);\n  }";
         $set = "  public function set{$col_name}(\${$col})\n  {\n    return \$this->set('{$col}', \${$col});\n  }";
-      } elseif (false !== mb_stripos($def, 'TIMESTAMP', null, 'utf8')) {
+      } elseif (false !== mb_stripos($def, 'TIME', null, 'utf8') || false !== mb_stripos($def, 'DATE', null, 'utf8')) {
         $get = "  public function get{$col_name}(\$format = null)\n  {\n    "
           . "return \$this->getAsDate('{$col}', \$format);\n  }";
         $set = "  public function set{$col_name}(\${$col})\n  {\n    "

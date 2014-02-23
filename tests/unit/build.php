@@ -281,6 +281,8 @@ class BuildTest extends PHPUnit_Framework_TestCase
       ->addEnum('type', array('abc', 'cde'))
       ->addPrice()
       ->addText()
+      ->addTimeUpdated()
+      ->addTime('birthday', false)
       ->addIndex('title', 'parent_id')
       ->addUniqueIndex('title');
     $exp = 'CREATE TABLE `pages` (' . "\n"
@@ -290,6 +292,8 @@ class BuildTest extends PHPUnit_Framework_TestCase
       . '  `type` ENUM ("abc", "cde") NOT NULL,' . "\n"
       . '  `price` FLOAT(10,2) UNSIGNED,' . "\n"
       . '  `text` TEXT,' . "\n"
+      . '  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,' . "\n"
+      . '  `birthday` DATETIME DEFAULT 0,' . "\n"
       . '  INDEX `i_title_parent_id` (`title`, `parent_id`),' . "\n"
       . '  UNIQUE INDEX `u_title` (`title`),' . "\n"
       . '  PRIMARY KEY (`id`),' . "\n"
