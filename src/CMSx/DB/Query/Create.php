@@ -230,7 +230,7 @@ class Create extends Query
   /** $unix ? TIMESTAMP : DATETIME, DEFAULT 0 */
   public function addTime($col, $unix = true)
   {
-    return $this->add($col, ($unix ? 'TIMESTAMP' : 'DATETIME') . ' DEFAULT 0');
+    return $this->add($col, ($unix ? 'TIMESTAMP' : 'DATETIME') . ' NULL DEFAULT NULL');
   }
 
   /** TIMESTAMP DEFAULT CURRENT_TIMESTAMP */

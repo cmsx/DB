@@ -293,7 +293,7 @@ class BuildTest extends PHPUnit_Framework_TestCase
       . '  `price` FLOAT(10,2) UNSIGNED,' . "\n"
       . '  `text` TEXT,' . "\n"
       . '  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,' . "\n"
-      . '  `birthday` DATETIME DEFAULT 0,' . "\n"
+      . '  `birthday` DATETIME NULL DEFAULT NULL,' . "\n"
       . '  INDEX `i_title_parent_id` (`title`, `parent_id`),' . "\n"
       . '  UNIQUE INDEX `u_title` (`title`),' . "\n"
       . '  PRIMARY KEY (`id`),' . "\n"

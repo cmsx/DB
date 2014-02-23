@@ -194,8 +194,7 @@ class ItemTest extends PHPUnit_Framework_TestCase
   {
     //$date, $format, $exp, $msg
     return array(
-      array(false, null, false, 'Нулевая дата #1'),
-      array('0000-00-00 00:00:00', null, false, 'Нулевая дата #2'),
+      array(false, null, false, 'Нулевая дата'),
       array('2012-01-10', null, '10.01.2012', 'Год вначале'),
       array('21.12.2012', 'Y-m-d H:i', '2012-12-21 00:00', 'Преобразование'),
     );
@@ -207,15 +206,19 @@ class ItemTest extends PHPUnit_Framework_TestCase
   function testSetAsDate($value, $exp, $msg)
   {
     $i = new MyItem;
-    $i->setAsDate('date', $value);
-    $this->assertEquals($exp, $i->getAsDate('date'), $msg);
+    $i->setAsDate('birthday', $value);
+    $i->save();
+
+    $this->assertEquals($exp, $i->getAsDate('birthday'), $msg);
   }
 
   function dateFormatsSet()
   {
     //$value, $exp, $msg
     return array(
-      array('12.01.2012', '12.01.2012', 'Сквозное преобразование'),
+      array('', false, 'Дата не указана №1'),
+      array(false, false, 'Дата не указана №2'),
+      array('24.06.1812', '24.06.1812', 'Сквозное преобразование'),
       array('2012-01-01 00:00', '01.01.2012', 'Разные форматы')
     );
   }
@@ -262,6 +265,7 @@ class ItemTest extends PHPUnit_Framework_TestCase
       ->addId()
       ->addBool('is_active')
       ->addChar('name')
+      ->addTime('birthday', false)
       ->addTimeCreated()
       ->execute();
 

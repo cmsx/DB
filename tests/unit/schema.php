@@ -163,7 +163,7 @@ class SchemaTest extends PHPUnit_Framework_TestCase
         'Type'    => 'datetime',
         'Null'    => 'YES',
         'Key'     => '',
-        'Default' => '0000-00-00 00:00:00',
+        'Default' => '',
         'Extra'   => '',
       ),
       array(

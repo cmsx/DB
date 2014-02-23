@@ -99,15 +99,17 @@ abstract class Item extends Container
   /** Приведение поля с датой в нужный формат */
   public function getAsDate($column, $format = null)
   {
-    $t = strtotime($this->get($column));
+    if ($v = $this->get($column)) {
+      return date($format ? : 'd.m.Y', strtotime($v));
+    }
 
-    return $t > 0 ? date($format ? : 'd.m.Y', $t) : false;
+    return false;
   }
 
   /** Установка значения поля с датой */
   public function setAsDate($column, $value)
   {
-    $this->set($column, date('Y-m-d H:i:s', strtotime($value)));
+    $this->set($column, $value ? date('Y-m-d H:i:s', strtotime($value)) : null);
 
     return $this;
   }

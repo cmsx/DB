@@ -2,7 +2,7 @@
 
 use CMSx\DB\Item;
 
-/** Этот класс был создан автоматически 23.02.2014 23:45 по схеме Schema2 */
+/** Этот класс был создан автоматически 24.02.2014 00:28 по схеме Schema2 */
 class TestModel extends Item
 {
   const STATUS_NEW = 'new';
