@@ -22,6 +22,8 @@ class MyConfig
 
 class MyItem extends Item
 {
+  public $yeah;
+
   /**
    * Менеджер подключения к БД
    *
@@ -57,7 +59,7 @@ class MyItem extends Item
 
   protected function afterSave()
   {
-    $this->set('yeah', 123);
+    $this->yeah = 123;
   }
 }
 
@@ -140,7 +142,7 @@ class ItemTest extends PHPUnit_Framework_TestCase
 
     $this->assertEquals(2, MyItem::Count(array('is_active' => 1)), 'Включенных элементов 2 шт.');
     $this->assertEquals('Two', $i->get('name'), 'Триггер до сохранения не изменил имя, т.к. обновляем');
-    $this->assertEquals(123, $i->get('yeah'), 'Триггер после сохранения сработал');
+    $this->assertEquals(123, $i->yeah, 'Триггер после сохранения сработал');
 
     $i = new MyItem();
     $i->set('name', 'Three');
@@ -150,6 +152,19 @@ class ItemTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(3, MyItem::Count(array('is_active' => 1)), 'Включенных элементов 3 шт.');
     $this->assertEquals('Three Yeah!', $i->get('name'), 'Триггер до сохранения изменил имя, т.к. новый элемент');
     $this->assertNotEmpty($i->get('created_at'), 'Значения по-умолчанию были загружены из БД');
+  }
+
+  function testSetNull()
+  {
+    $i = new MyItem();
+    $i->set('name', 'Test');
+    $i->save();
+
+    $i->set('name', NULL);
+    $i->save();
+    $i->load();
+
+    $this->assertEmpty($i->get('name'), 'NULL затер значение в БД');
   }
 
   function testDelete()
@@ -195,9 +210,25 @@ class ItemTest extends PHPUnit_Framework_TestCase
     //$date, $format, $exp, $msg
     return array(
       array(false, null, false, 'Нулевая дата'),
+      array('1812-06-24', null, '24.06.1812', 'Даты вне Unix time'),
       array('2012-01-10', null, '10.01.2012', 'Год вначале'),
       array('21.12.2012', 'Y-m-d H:i', '2012-12-21 00:00', 'Преобразование'),
     );
+  }
+
+  function testDateDelete()
+  {
+    $i = new MyItem;
+    $i->setAsDate('birthday', '01.01.1930');
+    $i->save();
+
+    $this->assertEquals('01.01.1930', $i->getAsDate('birthday'), 'Дата выставилась');
+
+    $i->setAsDate('birthday', false);
+    $i->save();
+    $i->load();
+
+    $this->assertFalse($i->getAsDate('birthday'), 'Дата удалилась');
   }
 
   /**
@@ -208,6 +239,7 @@ class ItemTest extends PHPUnit_Framework_TestCase
     $i = new MyItem;
     $i->setAsDate('birthday', $value);
     $i->save();
+    $i->load();
 
     $this->assertEquals($exp, $i->getAsDate('birthday'), $msg);
   }

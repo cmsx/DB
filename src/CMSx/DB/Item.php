@@ -27,6 +27,14 @@ abstract class Item extends Container
   /** Функция возвращает имя таблицы в БД */
   abstract function getTable();
 
+  /** Установка значения */
+  public function set($name, $value)
+  {
+    $this->vars[$name] = $value;
+
+    return $this;
+  }
+
   /**
    * Загрузка объекта из БД по ID
    * @throws Exception Если объект не найден
