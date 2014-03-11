@@ -107,9 +107,7 @@ abstract class Schema
       } elseif (isset($enum[$col])) {
         $get = "  public function get{$col_name}()\n  {\n    return \$this->get('{$col}');\n  }\n\n"
           . "  public function get{$col_name}Name()\n  {\n"
-          . "    return isset(static::\${$col}_arr[\$this->get{$col_name}()])\n"
-          . "      ? static::\${$col}_arr[\$this->get{$col_name}()]\n"
-          . "      : false;\n  }";
+          . "    return static::GetNameFor{$col_name}(\$this->get{$col_name}());\n  }";
         $set = "  public function set{$col_name}(\${$col})\n  {\n    return \$this->set('{$col}', \${$col});\n  }";
       } else {
         $get = "  public function get{$col_name}()\n  {\n    return \$this->get('{$col}');\n  }";
@@ -128,6 +126,9 @@ abstract class Schema
         );
         $col_name = join('', $a);
         $func[] = "  public static function Get{$col_name}Arr()\n  {\n    return static::\${$col}_arr;\n  }\n";
+        $func[] = "  public static function GetNameFor{$col_name}(\${$col})\n  {\n    "
+          . "\$arr = static::Get{$col_name}Arr();\n\n    "
+          . "return isset(\$arr[\${$col}]) ? \$arr[\${$col}] : false;\n  }\n";
       }
     }
 

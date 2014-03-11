@@ -2,7 +2,7 @@
 
 use CMSx\DB\Item;
 
-/** Этот класс был создан автоматически 24.02.2014 00:28 по схеме Schema2 */
+/** Этот класс был создан автоматически 11.03.2014 17:43 по схеме Schema2 */
 class TestModel extends Item
 {
   const STATUS_NEW = 'new';
@@ -39,9 +39,7 @@ class TestModel extends Item
 
   public function getStatusName()
   {
-    return isset(static::$status_arr[$this->getStatus()])
-      ? static::$status_arr[$this->getStatus()]
-      : false;
+    return static::GetNameForStatus($this->getStatus());
   }
 
   public function setStatus($status)
@@ -102,5 +100,12 @@ class TestModel extends Item
   public static function GetStatusArr()
   {
     return static::$status_arr;
+  }
+
+  public static function GetNameForStatus($status)
+  {
+    $arr = static::GetStatusArr();
+
+    return isset($arr[$status]) ? $arr[$status] : false;
   }
 }

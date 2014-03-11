@@ -191,6 +191,9 @@ class SchemaTest extends PHPUnit_Framework_TestCase
     require_once $file;
     $m = new TestModel;
 
+    $this->assertEquals('New', TestModel::GetNameForStatus(TestModel::STATUS_NEW), 'Название для константы');
+    $this->assertFalse(TestModel::GetNameForStatus('bla-bla'), 'Несуществующее имя');
+
     $arr = TestModel::GetStatusArr();
     $m->setStatus(TestModel::STATUS_OLD);
     $this->assertEquals('new', TestModel::STATUS_NEW, 'Константы ENUM создались');
