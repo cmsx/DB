@@ -267,6 +267,22 @@ class ItemTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($exp, $i->getAsFloat('price', 5, ',', '`'), 'Форматирование');
   }
 
+  function testSafeMode()
+  {
+    $i = new MyItem();
+
+    $str = '<a href="http://hello.ru">Hello</a>';
+    $exp_quot = htmlspecialchars($str);
+
+    $i->set('name', $str);
+    $this->assertEquals($exp_quot, $i->get('name'), 'По-умолчанию экранирование включено');
+
+    $this->assertEquals($str, $i->get('name', false), 'Прямое получение неэкранированных данных');
+
+    $i->enableSafeMode(false);
+    $this->assertEquals($str, $i->get('name'), 'Переключаем объект в небезопасный режим');
+  }
+
   protected function setUp()
   {
     try {

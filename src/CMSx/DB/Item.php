@@ -8,6 +8,9 @@ use CMSx\DB\Exception;
 
 abstract class Item extends Container
 {
+  /** Режим безопасного отображения данных с полным экранированием */
+  protected $safe_mode = true;
+
   function __construct($id = null)
   {
     $this->init();
@@ -104,6 +107,32 @@ abstract class Item extends Container
     return $this;
   }
 
+  /** Режим безопасного отображения данных с полным экранированием */
+  public function enableSafeMode($safe_mode = true)
+  {
+    $this->safe_mode = $safe_mode;
+
+    return $this;
+  }
+
+  /** Режим экранирования всех данных */
+  public function isSafeMode()
+  {
+    return (bool)$this->safe_mode;
+  }
+
+  /** Переопределяем геттер для обработки SafeMode возврата значений */
+  public function get($name, $safemode = null)
+  {
+    $v = parent::get($name);
+
+    if (is_null($safemode)) {
+      $safemode = $this->isSafeMode();
+    }
+
+    return $safemode ? htmlspecialchars($v) : $v;
+  }
+
   /** Приведение поля с датой в нужный формат */
   public function getAsDate($column, $format = null)
   {
@@ -142,7 +171,7 @@ abstract class Item extends Container
   /**
    * Найти элементы. Возвращает false если ничего не найдено
    *
-   * @return Item[]
+   * @return static[]
    */
   public static function Find($where = null, $orderby = null, $onpage = null, $page = null)
   {
@@ -158,7 +187,7 @@ abstract class Item extends Container
   /**
    * Найти один элемент
    *
-   * @return Item
+   * @return static
    */
   public static function FindOne($where, $orderby = null)
   {
