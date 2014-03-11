@@ -130,7 +130,7 @@ abstract class Item extends Container
       $safemode = $this->isSafeMode();
     }
 
-    return $safemode ? htmlspecialchars($v) : $v;
+    return is_string($v) && $safemode ? htmlspecialchars($v) : $v;
   }
 
   /** Приведение поля с датой в нужный формат */

@@ -279,6 +279,14 @@ class ItemTest extends PHPUnit_Framework_TestCase
 
     $this->assertEquals($str, $i->get('name', false), 'Прямое получение неэкранированных данных');
 
+    $i->set('obj', $i);
+    $i->set('arr', array('one' => 'two'));
+    $i->set('bool', true);
+
+    $this->assertTrue($i->get('obj') instanceof MyItem, 'Безопасный режим не затрагивает объекты');
+    $this->assertTrue(is_array($i->get('arr')), 'Безопасный режим не затрагивает массивы');
+    $this->assertTrue($i->get('bool'), 'Безопасный режим не затрагивает boolean');
+
     $i->enableSafeMode(false);
     $this->assertEquals($str, $i->get('name'), 'Переключаем объект в небезопасный режим');
   }
