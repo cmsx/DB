@@ -48,7 +48,13 @@ class Select extends Query
     if (!$this->statement) {
       $this->execute();
     }
+
     $res = $this->statement->fetchAll(\PDO::FETCH_ASSOC);
+
+    if (empty($res)) {
+      return false;
+    }
+
     if (!is_null($column)) {
       //Проверка наличия столбца
       $row = current($res);
@@ -95,7 +101,10 @@ class Select extends Query
   /** Получение массива ключ-значение */
   public function fetchAllByPair($key, $value)
   {
-    $res = $this->fetchAll();
+    if (!$res = $this->fetchAll()) {
+      return false;
+    }
+
     $out = array();
     if (!array_key_exists($key, current($res))) {
       DB::ThrowError(DB::ERROR_SELECT_BY_PAIR_NO_KEY, $key);
