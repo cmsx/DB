@@ -29,6 +29,58 @@ class DBTest extends PHPUnit_Framework_TestCase
     }
   }
 
+  function testFetchAll()
+  {
+    $db = $this->getDB();
+    $db->setPrefix('pre_');
+
+    $db->drop($this->table)->execute();
+
+    $c = $db->create($this->table);
+    $c->addId();
+    $c->addChar('name');
+    $c->execute();
+
+    $this->assertFalse($db->select($this->table)->fetchAll(), 'Полной выборки нет');
+    $this->assertFalse($db->select($this->table)->fetchAll('id'), 'Нет выборки по колонке');
+    $this->assertFalse($db->select($this->table)->fetchAllByPair('id', 'name'), 'Нет выборки по паре ключ-значение');
+
+    $db->insert($this->table)
+      ->setArray(array('id' => 1, 'name' => 'Hello'))
+      ->execute();
+
+    $db->insert($this->table)
+      ->setArray(array('id' => 2, 'name' => 'World'))
+      ->execute();
+
+    $exp = array('Hello', 'World');
+    $this->assertEquals($exp, $db->select($this->table)->fetchAll('name'), 'Выборка по колонке');
+
+    $exp = array(1 => 'Hello', 2 => 'World');
+    $this->assertEquals($exp, $db->select($this->table)->fetchAllByPair('id', 'name'), 'Выборка по паре ключ-значение');
+
+    try {
+      $db->select($this->table)->fetchAll('blabla');
+      $this->fail('Исключение по отсутствующей колонке');
+    } catch (Exception $e) {
+      $this->assertEquals(DB::ERROR_SELECT_BY_PAIR_NO_VALUE, $e->getCode(), 'Код исключения');
+    }
+
+    try {
+      $db->select($this->table)->fetchAllByPair('blabla', 'name');
+      $this->fail('Исключение по отсутствующему ключу');
+    } catch (Exception $e) {
+      $this->assertEquals(DB::ERROR_SELECT_BY_PAIR_NO_KEY, $e->getCode(), 'Код исключения');
+    }
+
+    try {
+      $db->select($this->table)->fetchAllByPair('id', 'blabla');
+      $this->fail('Исключение по отсутствующему значению');
+    } catch (Exception $e) {
+      $this->assertEquals(DB::ERROR_SELECT_BY_PAIR_NO_VALUE, $e->getCode(), 'Код исключения');
+    }
+  }
+
   function testAllQueries()
   {
     $db = $this->getDB();
