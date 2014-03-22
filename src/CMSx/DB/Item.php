@@ -168,6 +168,20 @@ abstract class Item extends Container
     return $v ? number_format($v, $decimals, $point, $thousands) : false;
   }
 
+  /** Явное приведение в INT */
+  public function setAsInt($column, $value)
+  {
+    $this->set($column, (int)$value);
+
+    return $this;
+  }
+
+  /** Явное приведение в INT */
+  public function getAsInt($column)
+  {
+    return (int)$this->get($column);
+  }
+
   /**
    * Найти элементы. Возвращает false если ничего не найдено
    *

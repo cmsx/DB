@@ -41,6 +41,7 @@ class Schema2 extends Schema
     $this->name  = 'My Test';
     $this->getQuery()
       ->addId()
+      ->addBool('is_active')
       ->addEnum('status', array('new', 'old'))
       ->addPrice('price')
       ->addChar('title')
@@ -127,6 +128,14 @@ class SchemaTest extends PHPUnit_Framework_TestCase
         'Extra'   => 'auto_increment',
       ),
       array(
+        'Field'   => 'is_active',
+        'Type'    => 'tinyint(1)',
+        'Null'    => 'YES',
+        'Key'     => null,
+        'Default' => 0,
+        'Extra'   => null,
+      ),
+      array(
         'Field'   => 'status',
         'Type'    => "enum('new','old')",
         'Null'    => 'NO',
@@ -199,6 +208,9 @@ class SchemaTest extends PHPUnit_Framework_TestCase
     $this->assertEquals('new', TestModel::STATUS_NEW, 'Константы ENUM создались');
     $this->assertEquals('Old', $arr[TestModel::STATUS_OLD], 'Массив имен констант сгенерился');
     $this->assertEquals('Old', $m->getStatusName(), 'Название ENUM сгенерилось и есть функция доступа');
+
+    $m->setIsActive(false);
+    $this->assertTrue($m->getIsActive() === 0, 'Bool преобразовываются в INT');
 
     $m->setTitle('One');
     $this->assertEquals('One', $m->getTitle(), 'Обычные значения');

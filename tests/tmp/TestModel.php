@@ -2,7 +2,7 @@
 
 use CMSx\DB\Item;
 
-/** Этот класс был создан автоматически 11.03.2014 17:43 по схеме Schema2 */
+/** Этот класс был создан автоматически 22.03.2014 21:56 по схеме Schema2 */
 class TestModel extends Item
 {
   const STATUS_NEW = 'new';
@@ -24,12 +24,22 @@ class TestModel extends Item
 
   public function getId()
   {
-    return $this->get('id');
+    return $this->getAsInt('id');
   }
 
   public function setId($id)
   {
-    return $this->set('id', $id);
+    return $this->setAsInt('id', $id);
+  }
+
+  public function getIsActive()
+  {
+    return $this->getAsInt('is_active');
+  }
+
+  public function setIsActive($is_active)
+  {
+    return $this->setAsInt('is_active', $is_active);
   }
 
   public function getStatus()

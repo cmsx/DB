@@ -104,6 +104,11 @@ abstract class Schema
           . "return \$this->getAsDate('{$col}', \$format);\n  }";
         $set = "  public function set{$col_name}(\${$col})\n  {\n    "
           . "return \$this->setAsDate('{$col}', \${$col});\n  }";
+      } elseif (false !== mb_stripos($def, 'BOOL', null, 'utf8') || false !== mb_stripos($def, 'INT', null, 'utf8')) {
+        $get = "  public function get{$col_name}()\n  {\n    "
+          . "return \$this->getAsInt('{$col}');\n  }";
+        $set = "  public function set{$col_name}(\${$col})\n  {\n    "
+          . "return \$this->setAsInt('{$col}', \${$col});\n  }";
       } elseif (isset($enum[$col])) {
         $get = "  public function get{$col_name}()\n  {\n    return \$this->get('{$col}');\n  }\n\n"
           . "  public function get{$col_name}Name()\n  {\n"
