@@ -95,16 +95,16 @@ abstract class Schema
         }
       );
       $col_name = join('', $a);
-      if (false !== mb_stripos($def, 'FLOAT', null, 'utf8')) {
+      if (0 === mb_stripos($def, 'FLOAT', null, 'utf8')) {
         $get = "  public function get{$col_name}(\$decimals = null, \$point = null, \$thousands = null)\n  {\n    "
           . "return \$this->getAsFloat('{$col}', \$decimals, \$point, \$thousands);\n  }";
         $set = "  public function set{$col_name}(\${$col})\n  {\n    return \$this->set('{$col}', \${$col});\n  }";
-      } elseif (false !== mb_stripos($def, 'TIME', null, 'utf8') || false !== mb_stripos($def, 'DATE', null, 'utf8')) {
+      } elseif (0 === mb_stripos($def, 'TIME', null, 'utf8') || 0 === mb_stripos($def, 'DATE', null, 'utf8')) {
         $get = "  public function get{$col_name}(\$format = null)\n  {\n    "
           . "return \$this->getAsDate('{$col}', \$format);\n  }";
         $set = "  public function set{$col_name}(\${$col})\n  {\n    "
           . "return \$this->setAsDate('{$col}', \${$col});\n  }";
-      } elseif (false !== mb_stripos($def, 'BOOL', null, 'utf8') || false !== mb_stripos($def, 'INT', null, 'utf8')) {
+      } elseif (0 === mb_stripos($def, 'BOOL', null, 'utf8') || 0 === mb_stripos($def, 'INT', null, 'utf8')) {
         $get = "  public function get{$col_name}()\n  {\n    "
           . "return \$this->getAsInt('{$col}');\n  }";
         $set = "  public function set{$col_name}(\${$col})\n  {\n    "
