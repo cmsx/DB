@@ -178,10 +178,7 @@ abstract class Query
   {
     foreach ($where as $key => $val) {
       if (is_numeric($key)) {
-        if ($val === true || $val === false) {
-          unset($this->where[$key]);
-          $this->where['is_active'] = true;
-        } elseif (is_array($val)) {
+        if (is_array($val)) {
           $this->processWhere($val);
         } elseif (is_numeric($val)) {
           unset($this->where[$key]);

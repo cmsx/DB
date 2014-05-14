@@ -85,8 +85,8 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($exp1, $sql->make(true), 'Значения подставляются в запрос');
     $this->assertEquals($exp1, (string)$sql, 'Преобразование объекта в строку');
 
-    $sql = $this->select('pages')->where(12, true);
-    $exp = 'SELECT * FROM `pages` WHERE `id`=12 AND `is_active`=1';
+    $sql = $this->select('pages')->where(12);
+    $exp = 'SELECT * FROM `pages` WHERE `id`=12';
     $this->assertEquals($exp, $sql->make(true), 'Значения подставляются в запрос');
   }
 
