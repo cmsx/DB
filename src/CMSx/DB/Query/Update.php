@@ -63,6 +63,14 @@ class Update extends Query
     return $this;
   }
 
+  /** Условие WHERE NOT IN. Не подставляет значения, только биндит! */
+  public function whereNotIn($column, array $array)
+  {
+    $this->processWhereIn($column, $array);
+
+    return $this;
+  }
+
   /** Условие WHERE column = $value */
   public function whereEqual($column, $value)
   {
@@ -78,6 +86,17 @@ class Update extends Query
   public function whereBetween($column, $from, $to)
   {
     $this->processWhereBetween($column, $from, $to);
+
+    return $this;
+  }
+
+  /**
+   * Условие WHERE $column NOT BETWEEN $from AND $to.
+   * Не подставляет значения, только биндит!
+   */
+  public function whereNotBetween($column, $from, $to)
+  {
+    $this->processWhereBetween($column, $from, $to, true);
 
     return $this;
   }

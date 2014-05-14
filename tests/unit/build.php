@@ -58,6 +58,14 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($vals[':where_p_id_2'], 13, 'ID #2 забиндился');
     $this->assertEquals($vals[':where_p_id_3'], 14, 'ID #3 забиндился');
 
+    $sql  = $this->select('pages p')->whereNotIn('p.id', array(12, 13, 14));
+    $vals = $sql->getBindedValues();
+    $exp  = 'SELECT * FROM `pages` `p` WHERE p.id NOT IN (:where_p_id_1,:where_p_id_2,:where_p_id_3)';
+    $this->assertEquals($exp, $sql->make(), 'Метод whereNotIn');
+    $this->assertEquals($vals[':where_p_id_1'], 12, 'ID #1 забиндился');
+    $this->assertEquals($vals[':where_p_id_2'], 13, 'ID #2 забиндился');
+    $this->assertEquals($vals[':where_p_id_3'], 14, 'ID #3 забиндился');
+
     $sql = $this->select('pages')->where(array('id' => array(1, 2, 'three')));
     $exp = 'SELECT * FROM `pages` WHERE `id` IN (:where_id_1,:where_id_2,:where_id_3)';
     $vals = $sql->getBindedValues();
@@ -70,6 +78,13 @@ class BuildTest extends PHPUnit_Framework_TestCase
     $vals = $sql->getBindedValues();
     $exp  = 'SELECT * FROM `pages` `p` WHERE p.id BETWEEN :where_p_id_from AND :where_p_id_to';
     $this->assertEquals($exp, $sql->make(), 'Метод whereBetween');
+    $this->assertEquals($vals[':where_p_id_from'], 12, 'ID "от" забиндилось');
+    $this->assertEquals($vals[':where_p_id_to'], 24, 'ID "до" забиндилось');
+
+    $sql  = $this->select('pages p')->whereNotBetween('p.id', 12, 24);
+    $vals = $sql->getBindedValues();
+    $exp  = 'SELECT * FROM `pages` `p` WHERE p.id NOT BETWEEN :where_p_id_from AND :where_p_id_to';
+    $this->assertEquals($exp, $sql->make(), 'Метод whereNotBetween');
     $this->assertEquals($vals[':where_p_id_from'], 12, 'ID "от" забиндилось');
     $this->assertEquals($vals[':where_p_id_to'], 24, 'ID "до" забиндилось');
 

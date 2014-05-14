@@ -201,7 +201,7 @@ abstract class Query
   }
 
   /** Обработка условия Where IN */
-  protected function processWhereIn($column, array $array)
+  protected function processWhereIn($column, array $array, $not_in = false)
   {
     $keys = array();
     $i = 0;
@@ -211,11 +211,11 @@ abstract class Query
       $this->setValue($key, $val, 'where');
     }
 
-    $this->processWhere(array(sprintf('%s IN (%s)', Builder::QuoteKey($column), join(',', $keys))));
+    $this->processWhere(array(sprintf($not_in ? '%s NOT IN (%s)' : '%s IN (%s)', Builder::QuoteKey($column), join(',', $keys))));
   }
 
   /** Обработка условия WHERE Between */
-  protected function processWhereBetween($column, $from, $to)
+  protected function processWhereBetween($column, $from, $to, $not_between = false)
   {
     $f = Builder::CleanKeyName($column) . '_from';
     $this->setValue($f, $from, 'where');
@@ -224,7 +224,7 @@ abstract class Query
     $this->setValue($t, $to, 'where');
 
     $w = sprintf(
-      '%s BETWEEN %s AND %s',
+      $not_between ? '%s NOT BETWEEN %s AND %s' : '%s BETWEEN %s AND %s',
       Builder::QuoteKey($column),
       Builder::BuildBinding('where', $f),
       Builder::BuildBinding('where', $t)
